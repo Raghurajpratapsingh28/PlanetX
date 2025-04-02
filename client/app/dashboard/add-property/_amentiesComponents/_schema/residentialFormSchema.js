@@ -1,0 +1,45 @@
+import { z } from "zod";
+
+export const residentialAmmentiesFormSchema = z.object({
+  amenities: z.object({
+    maintenanceStaff: z.boolean().default(false),
+    vastuCompliant: z.boolean().default(false),
+    securityFireAlarm: z.boolean().default(false),
+    visitorParking: z.boolean().default(false),
+    gasLine: z.boolean().default(false),
+    wifiCable: z.boolean().default(false),
+  }),
+  otherFeatures: z.object({
+    separateEntryForServantRoom: z.boolean().default(false),
+    noOpenDrainageAround: z.boolean().default(false),
+    petFriendly: z.boolean().default(false),
+    wheelchairFriendly: z.boolean().default(false),
+    rainWaterHarvesting: z.boolean().default(false),
+    cornerProperty: z.boolean().default(false),
+  }),
+  societyBuildingFeatures: z.object({
+    swimmingPool: z.boolean().default(false),
+    security24x7: z.boolean().default(false),
+    gymFitnessCentre: z.boolean().default(false),
+    shoppingCenter: z.boolean().default(false),
+    clubHouse: z.boolean().default(false),
+    childrensPlayArea: z.boolean().default(false),
+    sportsFacilities: z.boolean().default(false),
+    joggingWalkingTracks: z.boolean().default(false),
+    gardenParks: z.boolean().default(false),
+    communityHalls: z.boolean().default(false),
+    cinemaRoom: z.boolean().default(false),
+    libraryReadingRoom: z.boolean().default(false),
+  }),
+  nearbyPlaces: z.object({
+    hospital: z.boolean().default(false),
+    school: z.boolean().default(false),
+    metro: z.boolean().default(false),
+    mall: z.boolean().default(false),
+    market: z.boolean().default(false),
+    railway: z.boolean().default(false),
+    airport: z.boolean().default(false),
+    highway: z.boolean().default(false),
+    busStation: z.boolean().default(false),
+  }),
+});
