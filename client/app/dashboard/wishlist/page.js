@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -9,9 +11,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SlidersHorizontal } from "lucide-react";
-import React from "react";
+import React, { useEffect } from "react";
 
 const WishListPage = () => {
+  useEffect(()=>{
+    const token = localStorage.getItem("accessToken")
+    if(!token){
+      window.location.href="/login"
+    }
+  },[])
+
   return (
     <div className="p-4">
       <span className="text-xl font-semibold">Wishlist</span>

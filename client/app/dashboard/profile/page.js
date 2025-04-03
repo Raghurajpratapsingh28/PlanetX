@@ -19,6 +19,14 @@ const statesOfIndia = [
 ];
 
 const ProfilePage = () => {
+
+  useEffect(()=>{
+    const token = localStorage.getItem("accessToken")
+    if(!token){
+      window.location.href="/login"
+    }
+  },[])
+
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);

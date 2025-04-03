@@ -1,54 +1,49 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import {
-  Heart,
-  Search,
-  Star,
-  Phone,
-  MessageCircle,
-} from "lucide-react";
+import { Heart, Search, Star, Phone, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SortFilter } from "./sortFilter";
 import Image from "next/image";
 import axios from "axios";
 import BACKEND_URL from "@/lib/BACKEND_URL";
+import { useSearchParams } from "next/navigation";
 
 const MainCard = () => {
   const [propertyData, setPropertyData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const searchParams = useSearchParams(); // To get filter params from URL
 
+  useEffect(() => {
+    const fetchPropertyData = async () => {
+      const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
+      if (!token) return;
 
-  
+      // Build query string from URL search params
+      const query = new URLSearchParams(searchParams).toString();
 
-  // useEffect(() => {
-  //   const fetchPropertyData = async () => {
-  //     const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
-  //     if (!token) return;
+      try {
+        const response = await axios.get(
+          `${BACKEND_URL}/properties/availableProperty?${query}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setPropertyData(response.data.properties || []);
+      } catch (error) {
+        console.error("Error fetching property data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  //     try {
-  //       const response = await axios.get(
-  //         `${BACKEND_URL}/properties/availableProperty`,
-  //         {
-  //           headers: { Authorization: `Bearer ${token}` },
-  //         }
-  //       );
-
-  //       setPropertyData(response.data.properties || []);
-  //     } catch (error) {
-  //       console.error("Error fetching property data:", error);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchPropertyData();
-  // }, []);
+    fetchPropertyData();
+  }, [searchParams]); // Re-fetch when search params change
 
   return (
     <div className="flex-1 p-4 rounded-xl">
       {/* Search Header */}
-      <div className="flex flex-col gap-4 mb-6">
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <Input className="pl-10 bg-white" placeholder="Search area, city" />
@@ -64,9 +59,12 @@ const MainCard = () => {
       ) : (
         <div className="space-y-6">
           {propertyData.map((property) => (
-            <div key={property._id} className="border p-4 flex gap-4 bg-white rounded-xl">
+            <div
+              key={property._id}
+              className="border p-4 flex flex-col md:flex-row gap-4 bg-white rounded-xl"
+            >
               {/* Property Image */}
-              <div className="relative w-[240px] h-[180px]">
+              <div className="relative w-full md:w-[240px] h-[180px]">
                 <Image
                   src={property.imageUrl || "/default-property.jpg"}
                   alt={property.name || "Property"}
@@ -84,15 +82,15 @@ const MainCard = () => {
 
               {/* Property Details */}
               <div className="flex-1">
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col md:flex-row justify-between items-start">
                   <div>
-                    <h3 className="font-semibold">{property.name}</h3>
+                    <h3 className="font-semibold text-lg">{property.name}</h3>
                     <p className="text-sm text-gray-600">{property.location}</p>
                   </div>
 
-                  {/* Reviews (if available) */}
+                  {/* Reviews */}
                   {property.reviews && property.reviews.length > 0 ? (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 mt-2 md:mt-0">
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                       <span className="text-sm">
                         {(
@@ -103,12 +101,12 @@ const MainCard = () => {
                       </span>
                     </div>
                   ) : (
-                    <span className="text-sm text-gray-500">No Reviews</span>
+                    <span className="text-sm text-gray-500 mt-2 md:mt-0">No Reviews</span>
                   )}
                 </div>
 
                 <div className="mt-4 space-y-2">
-                  <div className="flex gap-8">
+                  <div className="flex flex-col md:flex-row gap-4 md:gap-8">
                     <div>
                       <p className="font-semibold">₹{property.price} Lac</p>
                       <p className="text-sm text-gray-600">Price</p>
@@ -119,11 +117,11 @@ const MainCard = () => {
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center mt-4">
                     <p className="text-sm text-gray-600">
                       {property.propertyStatus} • Available
                     </p>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 mt-2 md:mt-0">
                       <Button size="icon" className="rounded-full bg-green-500">
                         <MessageCircle className="h-4 w-4" />
                       </Button>

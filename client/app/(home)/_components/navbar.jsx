@@ -107,6 +107,12 @@ export const Navbar = () => {
                       >
                         My Profile
                       </Link>
+                      <Link
+                        href="/dashboard"
+                        className="block px-4 py-2 hover:bg-gray-100"
+                      >
+                        Dashboard
+                      </Link>
                       <button
                         onClick={handleLogout}
                         className="w-full text-left px-4 py-2 hover:bg-gray-100"
@@ -175,6 +181,13 @@ export const Navbar = () => {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     My Profile
+                  </Link>
+                  <Link
+                    href="/dashboard"
+                    className="block py-2 hover:text-[#4CAF50]"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                   Dashboard
                   </Link>
                   <button
                     onClick={handleLogout}

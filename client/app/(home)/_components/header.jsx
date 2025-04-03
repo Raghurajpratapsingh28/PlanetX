@@ -17,18 +17,30 @@ export const Header = () => {
   ];
 
   return (
-    <header className="bg-[#7B00FF] py-2 px-8 flex justify-between items-center">
-      <div className="flex gap-5">
+    <header className="bg-[#7B00FF] py-2 sm:py-3 lg:py-4 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
+      {/* Contact Info */}
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-5 lg:gap-6">
         {contacts.map((contact, index) => (
           <div key={index} className="flex items-center gap-2">
-            {contact.icon}
-            <span className="text-white text-xs font-semibold">{contact.text}</span>
+            <span className="text-white text-sm sm:text-base">{contact.icon}</span>
+            <span className="text-white text-xs sm:text-sm lg:text-base font-semibold whitespace-nowrap">
+              {contact.text}
+            </span>
           </div>
         ))}
       </div>
-      <div className="flex gap-3">
+
+      {/* Social Links */}
+      <div className="flex gap-3 sm:gap-4 lg:gap-5">
         {socialLinks.map((link, index) => (
-          <a key={index} href={link.href} target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition">
+          <a
+            key={index}
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white text-lg sm:text-xl lg:text-2xl hover:scale-110 transition-transform duration-200"
+            aria-label={`Visit our ${link.href.split(".com")[0].split("//")[1]} page`}
+          >
             {link.icon}
           </a>
         ))}

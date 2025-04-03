@@ -1,7 +1,19 @@
-import { Suspense } from "react";
+"use client"
+
+import { Suspense, useEffect} from "react";
 import { AddPropertyForm } from "./_components/add-property";
 
 export default function AddPropertyPage() {
+  
+  useEffect(()=>{
+    const token = localStorage.getItem("accessToken")
+    if(!token){
+      window.location.href="/login"
+    }
+  },[])
+
+  
+
   return (
     <>
       <div className="flex flex-col">
