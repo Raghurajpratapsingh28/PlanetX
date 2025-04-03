@@ -40,7 +40,7 @@ export const PropertyCards = () => {
             >
               <CardContent className="flex flex-col h-full gap-5">
                 <div className="w-[75px] h-[75px] border-[1px] rounded-[8px] flex items-center justify-center">
-                  <Image height={45} width={45} src='/villa.png' />
+                  <Image height={45} width={45} src='/villa.png' alt="Villa icon" />
                 </div>
                 <div className="flex flex-col gap-3">
                   <h2 className="text-xl font-semibold">{card.title}</h2>

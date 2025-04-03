@@ -1,6 +1,5 @@
-"use client";
-
-import React, { useState } from "react";
+import React from "react";
+import { useState } from "react";
 import { ReusableCollapsible } from "./collapisble";
 import BudgetFilter from "./BudgetFilter";
 import { AreaFilter } from "./areaFilter";
@@ -10,11 +9,10 @@ const SideBarListingview = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedBedroom, setSelectedBedroom] = useState(null);
   const [selectedRole, setSelectedRole] = useState(null);
-  const [selectedParking, setSelectedParking] = useState(null);
-  const [selectedFurnished, setSelectedFurnished] = useState(null);
-
+  const [parking, setParking] = useState(null);
+  const [furnished, setFurnished] = useState(null);
   return (
-    <div className="w-full bg-white rounded-lg shadow-md p-4 sm:p-6 space-y-6">
+    <div className="w-[300px] border-r p-4 space-y-6 bg-white rounded-xl">
       {/* Budget Section */}
       <BudgetFilter />
       <AreaFilter />
@@ -25,7 +23,7 @@ const SideBarListingview = () => {
         selected={selectedType}
         setSelected={setSelectedType}
         paramName="propertyType"
-      />
+      />{" "}
       <ReusableCollapsible
         title="Category"
         options={[
@@ -67,15 +65,15 @@ const SideBarListingview = () => {
       <ReusableCollapsible
         title="Parking"
         options={["Open Parking", "Closed Parking"]}
-        selected={selectedParking}
-        setSelected={setSelectedParking}
+        selected={parking}
+        setSelected={setParking}
         paramName="parking"
       />
       <ReusableCollapsible
-        title="Furnishing Status"
-        options={["Furnished", "Semi Furnished", "Unfurnished"]}
-        selected={selectedFurnished}
-        setSelected={setSelectedFurnished}
+        title="Furnishing status"
+        options={["Furnished", "Semi furnished", "Unfurnished"]}
+        selected={furnished}
+        setSelected={setFurnished}
         paramName="furnishing"
       />
     </div>

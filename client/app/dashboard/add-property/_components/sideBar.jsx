@@ -16,8 +16,8 @@ export const AppSidebar = () => {
   const sidebarItems = [
     {
       icon: <LayoutDashboard className="w-6 h-6" />,
-      label: "Add Property",
-      href: "/dashboard/add-property",
+      label: "Dashboard",
+      href: "/dashboard",
     },
     {
       icon: <Heart className="w-6 h-6" />,

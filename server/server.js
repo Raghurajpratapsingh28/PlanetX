@@ -9,22 +9,48 @@ const highlightRoutes = require("./routes/highlightRoutes");
 const adminPanelRoutes = require("./routes/adminPanelRoutes");
 const { authenticateToken } = require("./middleware/authMiddleware");
 const { pushTestData } = require("./scripts/add_test");
+
 dotenv.config();
-connectDB();
+console.log("ENV FILE LOADED:", process.env.AWS_ACCESS_KEY_ID? "Loaded" : "Not Loaded");
 const app = express();
+
+// Middleware
 app.use(cors());
 app.use(express.json());
-pushTestData();
-app.use("/",(req,res)=>{
-  res.json("Server running")
-})
-app.use("/api/auth", authRoutes);
-app.use(authenticateToken);
-app.use("/api/admin", adminPanelRoutes);
-app.use("/api/properties", propertyRoutes);
-app.use("/api/wishlist", wishlistRoutes);
-app.use("/api/highlights", highlightRoutes);
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.use(express.urlencoded({ extended: true }));
+
+const startServer = async () => {
+  try {
+    await connectDB();
+
+    
+    if (process.env.NODE_ENV !== "production") {
+      await pushTestData();
+    }
+
+    app.get("/", (req, res) => {
+      res.send("Server is Ready");
+    });
+
+    
+    app.use("/api/auth", authRoutes);
+
+    // Protected Routes (Require authentication)
+    app.use("/api/properties", authenticateToken, propertyRoutes);
+    app.use("/api/wishlist", authenticateToken, wishlistRoutes);
+    app.use("/api/highlights", authenticateToken, highlightRoutes);
+    app.use("/api/admin", authenticateToken, adminPanelRoutes);
+
+    // Start Server
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+
+  } catch (error) {
+    console.error("Failed to connect to database:", error);
+    process.exit(1);
+  }
+};
+
+startServer();

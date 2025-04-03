@@ -1,5 +1,6 @@
 const INT_MAX = 2147483647;
-module.exports = getPropertyAreaFilter = (property) => {
+
+const getPropertyAreaFilter = (property) => {
   let minArea = 0;
   let maxArea = 0;
 
@@ -31,7 +32,7 @@ module.exports = getPropertyAreaFilter = (property) => {
   return { minArea, maxArea };
 };
 
-module.exports = getPropertyPrice = (property) => {
+const getPropertyPrice = (property) => {
   if (!property || !property.pricing) return { price: "N/A", label: "" };
 
   let price = "N/A",
@@ -68,3 +69,5 @@ module.exports = getPropertyPrice = (property) => {
 
   return { price, label };
 };
+
+module.exports = { getPropertyAreaFilter, getPropertyPrice }; 

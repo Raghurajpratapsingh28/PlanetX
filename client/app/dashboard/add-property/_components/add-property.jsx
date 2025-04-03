@@ -55,18 +55,48 @@ export function AddPropertyForm() {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     const formData = new FormData();
+  
+    if (Object.keys(propertyData).length === 0) {
+      toast({
+        title: "Error",
+        description: "Property data is missing",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+  
     propertyData.role = lookingFor;
     formData.append("propertyData", JSON.stringify(propertyData));
+  
     if (files.images.length > 0) {
       files.images.forEach((image) => {
         formData.append("images", image);
       });
     }
-    if (files.video && files.video[0]) {
-      formData.append("video", files.video[0]);
+  
+    if (files.video) {
+      formData.append("video", files.video);
     }
-
-    const token = localStorage.getItem("accessToken").replace(/^"|"$/g, "");
+  
+    let token = localStorage.getItem("accessToken");
+    if (!token) {
+      toast({
+        title: "Error",
+        description: "User not authenticated",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+    token = token.replace(/^"|"$/g, "");
+  
+    console.log("Submitting property with data:", propertyData);
+    console.log("FormData entries:");
+    for (let pair of formData.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+  
     try {
       const response = await axios.post(
         `${BACKEND_URL}/properties/add`,
@@ -78,24 +108,37 @@ export function AddPropertyForm() {
           },
         }
       );
+  
       toast({
         title: "Success",
         description: "Property added successfully!",
         variant: "default",
       });
+  
       setIsSubmitting(false);
       setCurrentStep(1);
     } catch (error) {
+      console.error("Full error:", error);
+  
+      if (error.response) {
+        console.error("Response data:", error.response.data);
+        console.error("Status code:", error.response.status);
+      } else if (error.request) {
+        console.error("No response received. Request details:", error.request);
+      } else {
+        console.error("Error setting up request:", error.message);
+      }
+  
       toast({
         title: "Error",
-        description: "Failed to add property",
+        description: error.response?.data?.message || "Failed to add property",
         variant: "destructive",
       });
-      console.error("Error:", error.response?.data || error.message);
     } finally {
       setIsSubmitting(false);
     }
   };
+  
 
   return (
     <div className="flex flex-col md:flex-row gap-8">
@@ -146,7 +189,6 @@ export function AddPropertyForm() {
               setCurrentStep={setCurrentStep}
             />
           )}
-          {}
         </div>
 
         <div className="flex items-center justify-between">
@@ -159,27 +201,6 @@ export function AddPropertyForm() {
               currentStep={currentStep}
             />
           ) : (
-            // <Button
-            //   onClick={() => handleSubmit()}
-            //   className="bg-[#7B00FF] text-primary-foreground"
-            // >
-            //   Submit Property
-            //   <svg
-            //     xmlns="http://www.w3.org/2000/svg"
-            //     width="24"
-            //     height="24"
-            //     viewBox="0 0 24 24"
-            //     fill="none"
-            //     stroke="currentColor"
-            //     strokeWidth="2"
-            //     strokeLinecap="round"
-            //     strokeLinejoin="round"
-            //     className="ml-2 h-4 w-4"
-            //   >
-            //     <path d="M5 12h14" />
-            //     <path d="m12 5 7 7-7 7" />
-            //   </svg>
-            // </Button>
             <Button
               onClick={(event) => {
                 setCurrentStep((prev) => Math.min(prev + 1, 5));

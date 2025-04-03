@@ -57,7 +57,7 @@ export const ContactForm = () => {
                 <div className="flex h-[58px] items-center gap-3 rounded-lg border border-[#E1E1E1] px-4">
                   <div className="flex items-center gap-1 border-r border-[#9E9E9E] pr-2">
                     <Image
-                      src="/placeholder.svg"
+                      src="/flag.png"
                       alt="India flag"
                       width={24}
                       height={16}

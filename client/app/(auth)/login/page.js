@@ -1,73 +1,99 @@
-"use client";
-
-import Image from "next/image";
-import { useState } from "react";
-import { EnterPhoneNumber } from "./(login-phone-number)/phone-number-page";
-import { OTPVerification } from "./(login-otp)/otp-page";
+'use client'
+import Image from 'next/image'
+import { useState, useEffect } from 'react';
+import { EnterPhoneNumber } from './(login-phone-number)/phone-number-page'
+import { OTPVerification } from './(login-otp)/otp-page'
 
 export default function Login() {
   const [phoneNumberSubmitted, setPhoneNumberSubmitted] = useState(false);
-  const [mobileNumber, setMobileNumber] = useState("");
+  const [mobileNumber, setMobileNumber] = useState('');
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  // Array of background images
+  const backgroundImages = [
+    "/login.jpg",
+    "/login_2.jpg",
+    "/login_3.jpg"
+  ];
+  
+  // Image captions and descriptions
+  const imageContent = [
+    {
+      title: "Discover the Best\nNeighborhoods",
+      description: "Explore a vast selection of properties tailored to your preferences. Whether you're buying, selling, or renting, we've got you covered!"
+    },
+    {
+      title: "Find Your Dream Home",
+      description: "Browse thousands of listings with detailed filters to match your exact requirements. Our curated selection ensures quality at every price point."
+    },
+    {
+      title: "Expert Real Estate Advice",
+      description: "Connect with top local agents who understand your needs. Get personalized recommendations and support throughout your journey."
+    }
+  ];
+
+  const handleDotClick = (index) => {
+    setCurrentImageIndex(index);
+  };
+
+  // Auto-rotate images every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % backgroundImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col" >
-      {/* Logo */}
-      <div className="absolute top-4 cursor-pointer left-4 sm:top-6 sm:left-6 flex items-center" onClick={()=>{window.location.href="/"}}>
-        <Image
-          src="/logo.png"
-          alt="Logo"
-          width={80}
-          height={80}
-          className="w-12 h-12 sm:w-16 sm:h-16 object-contain"
-        />
-        <div className="font-extrabold pl-2 text-xl sm:text-2xl text-gray-800">
-          PLANET X
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex flex-col lg:flex-row flex-1">
+    <div className='max-h-screen'>
+      <div className="w-full flex">
         {/* Left Panel */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-          <div className="w-full max-w-md space-y-6">
-            {phoneNumberSubmitted ? (
-              <OTPVerification mobileNumber={mobileNumber} />
-            ) : (
-              <EnterPhoneNumber
-                mobileNumber={mobileNumber}
-                setMobileNumber={setMobileNumber}
-                phoneNumberSubmitted={phoneNumberSubmitted}
-                setPhoneNumberSubmitted={setPhoneNumberSubmitted}
-              />
-            )}
+        <div className="w-1/2 flex items-center justify-center">
+          <div className={`max-w-[450px] ${phoneNumberSubmitted ? "h-[666px]" : "h-[257px]"}`}>
+            {
+              phoneNumberSubmitted
+                ? <OTPVerification mobileNumber={mobileNumber} />
+                : <EnterPhoneNumber
+                  mobileNumber={mobileNumber}
+                  setMobileNumber={setMobileNumber}
+                  phoneNumberSubmitted={phoneNumberSubmitted}
+                  setPhoneNumberSubmitted={setPhoneNumberSubmitted}
+                />
+            }
           </div>
         </div>
-
         {/* Right Panel */}
         <div className="hidden lg:block w-1/2 relative">
           <Image
-            className="h-screen w-full object-cover brightness-75"
+            className="h-screen w-full object-cover brightness-[0.85] transition-opacity duration-500"
             height={1080}
             width={720}
-            src="/login-page-image.png"
-            alt="Building facade"
+            src={backgroundImages[currentImageIndex]}
+            alt={`Real estate image ${currentImageIndex + 1}`}
             priority
           />
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-white px-6 lg:px-12">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-4">
-              Discover the Best<br />Neighborhoods
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-white px-12">
+            <h2 className="text-4xl font-bold mb-4 text-center whitespace-pre-line">
+              {imageContent[currentImageIndex].title}
             </h2>
-            <p className="text-sm md:text-base lg:text-lg text-center opacity-90 max-w-sm lg:max-w-md">
-              Explore a vast selection of properties tailored to your preferences. Whether you're buying, selling, or renting, we've got you covered!
+            <p className="text-center text-lg opacity-90 max-w-md">
+              {imageContent[currentImageIndex].description}
             </p>
-            <div className="flex gap-2 mt-6 lg:mt-8">
-              <div className="w-2 h-2 rounded-full bg-white"></div>
-              <div className="w-2 h-2 rounded-full bg-white/50"></div>
-              <div className="w-2 h-2 rounded-full bg-white/50"></div>
+            <div className="flex gap-2 mt-8">
+              {backgroundImages.map((_, index) => (
+                <button 
+                  key={index}
+                  onClick={() => handleDotClick(index)}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    index === currentImageIndex ? "bg-white scale-125" : "bg-white/50 hover:bg-white/70"
+                  }`}
+                  aria-label={`View image ${index + 1}`}
+                />
+              ))}
             </div>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }

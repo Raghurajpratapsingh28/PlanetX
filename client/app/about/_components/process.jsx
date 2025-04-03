@@ -1,6 +1,5 @@
-"use client";
 
-import Image from "next/image";
+import Image from "next/image"
 
 export const ProcessSection = () => {
   const steps = [
@@ -12,8 +11,7 @@ export const ProcessSection = () => {
     {
       number: "02",
       title: "Property Search",
-      description:
-        "Explore detailed listings with photos, descriptions, and key features to find the right fit.",
+      description: "Explore detailed listings with photos, descriptions, and key features to find the right fit.",
     },
     {
       number: "03",
@@ -23,72 +21,71 @@ export const ProcessSection = () => {
     {
       number: "04",
       title: "Closing",
-      description:
-        "Connect with property owners instantly for quick and transparent communication.",
+      description: "Connect with property owners instantly for quick and transparent communication.",
     },
-  ];
+  ]
 
   return (
-    <section className="py-8 px-4 sm:px-6 md:px-12 lg:px-24 xl:px-32 bg-gray-50">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-          {/* Steps Column */}
-          <div className="w-full lg:w-1/2 space-y-6">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-gray-800 text-center lg:text-left">
+    <section className="flex flex-col justify-end items-center px-6 py-12 md:px-24 lg:px-[100px] gap-5 w-full max-w-[1440px] mx-auto">
+      <div className="flex flex-col lg:flex-row justify-center items-end w-full gap-5 lg:gap-20">
+        <div className="flex flex-col items-center lg:items-start lg:pr-8 gap-9 w-full lg:w-[640px]">
+          <div className="w-full">
+            <h2 className="font-semibold text-3xl lg:text-4xl leading-[1.56] text-[#0F0D0D] font-poppins">
               Our Process
             </h2>
-            <div className="space-y-4">
-              {steps.map((step) => (
-                <div
-                  key={step.number}
-                  className="flex items-start p-4 sm:p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-md flex items-center justify-center">
-                    <span className="text-lg sm:text-xl font-medium text-purple-600">
-                      {step.number}
-                    </span>
-                  </div>
-                  <div className="ml-4 flex-1">
-                    <h3 className="text-lg sm:text-xl font-medium text-gray-800">
-                      {step.title}
-                    </h3>
-                    <p className="mt-1 text-sm sm:text-base text-gray-600">
-                      {step.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
 
-          {/* Images Column */}
-          <div className="w-full lg:w-1/2 flex justify-center lg:justify-end">
-            <div className="relative w-full max-w-md sm:max-w-lg lg:max-w-xl">
-              {/* Main Image */}
-              <div className="relative w-full h-64 sm:h-80 md:h-96 lg:h-[400px]">
-                <Image
-                  src="/about-section.png"
-                  alt="People reviewing property details"
-                  className="rounded-lg object-cover"
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-                  priority
-                />
+          <div className="flex flex-col gap-8 w-full">
+            {steps.map((step) => (
+              <div
+                key={step.number}
+                className="flex flex-row items-start p-8 gap-5 w-full bg-white border border-[#E1E1E1] rounded-xl"
+              >
+                <div className="flex justify-center items-center p-[5px] w-12 h-12 bg-[#F2E6FF] rounded-lg">
+                  <span className="font-medium text-2xl leading-[38px] text-[#7B00FF] font-poppins">
+                    {step.number}
+                  </span>
+                </div>
+                <div className="flex flex-col justify-center gap-[5px] flex-1">
+                  <h3 className="font-medium text-xl leading-8 text-[#0F0D0D] font-poppins">
+                    {step.title}
+                  </h3>
+                  <p className="text-base leading-[26px] text-[#6C696A] font-poppins">
+                    {step.description}
+                  </p>
+                </div>
               </div>
-              {/* Small Overlay Image */}
-              <div className="absolute -top-6 -left-6 sm:-top-8 sm:-left-8 w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 z-10">
-                <Image
-                  src="/about-section.png"
-                  alt="Small property consultation image"
-                  className="rounded-lg object-cover border-2 border-white shadow-md"
-                  fill
-                  sizes="(max-width: 640px) 128px, (max-width: 1024px) 160px, 224px"
-                />
-              </div>
-            </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="relative w-full lg:w-[580px] h-[649px]">
+          {/* Small image positioned absolutely */}
+          <div className="absolute -top-[71px] -left-10 w-[267px] h-[283px] z-10">
+            <Image
+              src="/about-section.png"
+              alt="Small property consultation image"
+              className="rounded-xl object-cover"
+              fill
+              sizes="267px"
+            />
+          </div>
+
+          {/* Main large image */}
+          <div className="relative w-[530px] h-full">
+            <Image
+              src="/about-section.png"
+              alt="People reviewing property details"
+              className="rounded-xl object-cover"
+              fill
+              sizes="(max-width: 768px) 100vw, 530px"
+              priority
+            />
           </div>
         </div>
       </div>
     </section>
-  );
-};
+  )
+}
+
+

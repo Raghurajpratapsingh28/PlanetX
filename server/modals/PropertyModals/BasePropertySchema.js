@@ -1,9 +1,10 @@
 const mongoose = require("mongoose");
-const { Schema } = mongoose;
+
+const Schema = mongoose.Schema;
 
 const basePropertySchema = new Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     propertyType: {
       type: String,
       enum: ["For Sale", "For Rent", "Commercial"],
@@ -57,12 +58,7 @@ const basePropertySchema = new Schema(
       },
     ],
     video: { type: String },
-    reviews: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Review",
-      },
-    ],
+    reviews: [{ type: Schema.Types.ObjectId, ref: "Review" }],
   },
   { timestamps: true, discriminatorKey: "category" }
 );

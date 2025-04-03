@@ -1,6 +1,12 @@
-const mongoose = require("mongoose")
-const { Schema } = mongoose;
+const mongoose = require("mongoose");
 const Property = require("./BasePropertySchema.js");
+
+
+if (!Property) {
+  throw new Error("Property model must be initialized before creating PG.");
+}
+
+const Schema = mongoose.Schema;
 
 const pgSchema = new Schema(
   {

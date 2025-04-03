@@ -9,6 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -21,31 +22,31 @@ const ResidentialPricingForm = ({ form }) => {
   const maintenanceFrequency = form.watch("maintenanceFrequency");
 
   return (
-    <div className="space-y-6">
+    <>
       {/* Pricing Section */}
-      <div className="space-y-4">
-        <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800">
-          Pricing Details
+      <div className="space-y-5">
+        <h3 className="text-2xl font-semibold font-poppins text-[#0F0D0D]">
+          Pricing Detail
         </h3>
-        <hr className="border-gray-200" />
-        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+        <hr />
+        <div className="flex justify-between  gap-3">
           <FormField
             control={form.control}
             name="expectedPrice"
             render={({ field }) => (
-              <FormItem className="flex-1">
-                <FormLabel className="text-sm sm:text-base font-medium text-gray-700">
+              <FormItem>
+                <FormLabel className="text-base font-medium font-poppins text-[#0F0D0D]">
                   Expected Price
                 </FormLabel>
                 <FormControl>
                   <Input
                     type="number"
                     placeholder="Enter expected price"
-                    className="w-full p-2 sm:p-3 border border-gray-300 rounded-md text-sm sm:text-base text-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="h-[50px] w-[350px] px-[15px] border-[#E1E1E1] rounded-lg text-[#9E9E9E] font-poppins"
                     {...field}
                   />
                 </FormControl>
-                <FormMessage className="text-xs sm:text-sm text-red-500" />
+                <FormMessage className="text-red-500 text-sm" />
               </FormItem>
             )}
           />
@@ -54,19 +55,19 @@ const ResidentialPricingForm = ({ form }) => {
             control={form.control}
             name="PricePerSqft"
             render={({ field }) => (
-              <FormItem className="flex-1">
-                <FormLabel className="text-sm sm:text-base font-medium text-gray-700">
+              <FormItem>
+                <FormLabel className="text-base font-medium font-poppins text-[#0F0D0D]">
                   Price per Sqft
                 </FormLabel>
                 <FormControl>
                   <Input
                     type="number"
                     placeholder="Enter price per sqft"
-                    className="w-full p-2 sm:p-3 border border-gray-300 rounded-md text-sm sm:text-base text-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="h-[50px] w-[350px] px-[15px] border-[#E1E1E1] rounded-lg text-[#9E9E9E] font-poppins"
                     {...field}
                   />
                 </FormControl>
-                <FormMessage className="text-xs sm:text-sm text-red-500" />
+                <FormMessage className="text-red-500 text-sm" />
               </FormItem>
             )}
           />
@@ -74,19 +75,19 @@ const ResidentialPricingForm = ({ form }) => {
       </div>
 
       {/* Maintenance Section */}
-      <div className="space-y-4">
-        <h3 className="text-md sm:text-lg md:text-xl font-semibold text-gray-800">
+      <div className="space-y-5">
+        <h3 className="text-xl font-semibold font-poppins text-[#0F0D0D]">
           Maintenance
         </h3>
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 items-start sm:items-center">
+        <div className="flex gap-2 items-center">
           <FormField
             control={form.control}
             name="maintenanceFrequency"
             render={({ field }) => (
-              <FormItem className="w-full sm:w-40">
+              <FormItem>
                 <FormControl>
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className="w-full h-10 sm:h-12 border-gray-300 text-sm sm:text-base text-gray-600 focus:ring-2 focus:ring-purple-500">
+                    <SelectTrigger className="w-[150px] h-[48px]">
                       <SelectValue placeholder="Select frequency" />
                     </SelectTrigger>
                     <SelectContent>
@@ -96,7 +97,7 @@ const ResidentialPricingForm = ({ form }) => {
                     </SelectContent>
                   </Select>
                 </FormControl>
-                <FormMessage className="text-xs sm:text-sm text-red-500" />
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -106,23 +107,23 @@ const ResidentialPricingForm = ({ form }) => {
               control={form.control}
               name="maintenancePrice"
               render={({ field }) => (
-                <FormItem className="flex-1">
+                <FormItem>
                   <FormControl>
                     <Input
                       type="number"
                       placeholder="Enter maintenance price"
-                      className="w-full p-2 sm:p-3 border border-gray-300 rounded-md text-sm sm:text-base text-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent sm:border-l sm:rounded-l-none"
+                      className="h-[50px] w-[300px] px-[15px] border-[#E1E1E1] rounded-lg text-[#9E9E9E] font-poppins !border-l-0"
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage className="text-xs sm:text-sm text-red-500" />
+                  <FormMessage className="text-red-500 text-sm" />
                 </FormItem>
               )}
             />
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

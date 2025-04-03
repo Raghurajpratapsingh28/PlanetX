@@ -10,7 +10,6 @@ import { Testimonials } from "../(home)/_components/testimonial"
 export default function About() {
   return (
     <>
-      <Navbar />
       <AboutHeader />
       <WelcomeSection />
       <ProcessSection />

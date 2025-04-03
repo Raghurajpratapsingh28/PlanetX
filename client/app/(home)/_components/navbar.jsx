@@ -4,174 +4,199 @@ import Image from "next/image";
 import logo from "../../../public/logo.png";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { CgProfile } from "react-icons/cg";
-import { Bell, ChevronDown, Menu, X } from "lucide-react"; // Added for mobile toggle
+import { Bell, ChevronDown, Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Added for mobile menu
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-    console.log(token);
-    if (token) {
-      setIsLoggedIn(true);
-    }
+    setIsLoggedIn(!!token);
   }, []);
 
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    setIsLoggedIn(false);
+    setUserMenuOpen(false);
+    setMobileMenuOpen(false);
+    router.push("/login");
+  };
+
+  const navLinks = [
+    { href: "/", label: "Home" },
+    { href: "/show-property", label: "All Properties" },
+    { 
+      href: "/dashboard/add-property", 
+      label: "Post Property",
+      badge: "FREE"
+    },
+    { href: "/highlights", label: "Highlights" },
+    { href: "/dashboard/wishlist", label: "Wishlist" },
+  ];
+
   return (
-    <div className="w-full border-b border-[#E1E1E1] shadow-lg bg-white">
-      <div className="py-[15px] px-[15px] sm:px-[30px] flex justify-between items-center max-w-[1440px] mx-auto">
-        <div className="flex gap-2 items-center cursor-pointer justify-center" onClick={()=>{window.location.href="/"}}>
-          <Image
-            src={logo || "/placeholder.svg"}
-            width={40}
-            height={40}
-            alt="logo of planet-x"
-          />
-          <span className="font-extrabold text-base sm:text-lg">PLANET X</span>
-        </div>
-
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex gap-4 lg:gap-6 font-medium text-sm sm:text-base justify-center items-center text-[#0F0D0D]">
-          <Link href="/">Home</Link>
-          <div className="flex items-center gap-1">
-            <Select>
-              <SelectTrigger className="w-[80px] sm:w-[100px] p-1 ring-0 focus:ring-0 focus:ring-offset-0 border-none focus:border-none">
-                <SelectValue placeholder="Properties" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Residential">Residential</SelectItem>
-                <SelectItem value="Commercial">Commercial</SelectItem>
-                <SelectItem value="Warehouse">Warehouse</SelectItem>
-              </SelectContent>
-            </Select>
-            <ChevronDown className="h-4 w-4" />
+    <nav className="w-full border-b border-[#E1E1E1] shadow-lg bg-white sticky top-0 z-50">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <div className="flex items-center">
+            <Link href="/" className="flex items-center gap-2">
+              <Image
+                src={logo || "/placeholder.svg"}
+                width={40}
+                height={40}
+                alt="Planet X Logo"
+                className="object-contain"
+              />
+              <span className="font-extrabold text-lg md:text-xl text-[#0F0D0D]">
+                PLANET X
+              </span>
+            </Link>
           </div>
-          <Link href="/dashboard/add-property" className="flex items-center gap-1">
-            Post Property
-            <span className="bg-[#4CAF50] text-white px-2 py-0.5 text-xs sm:text-sm rounded text-center">
-              FREE
-            </span>
-          </Link>
-          <Link href="/show-property" className="flex items-center gap-1">
-            See Property
-          </Link>
-          <Link href="/highlights">Highlights</Link>
-          <Link href="/dashboard/wishlist">Wishlist</Link>
-        </div>
 
-        {/* Desktop User Section */}
-        <div className="hidden md:flex items-center gap-3 lg:gap-5">
-          {isLoggedIn ? (
-            <>
-              <div className="relative">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-6 text-[#0F0D0D]">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="flex items-center gap-1 text-base font-medium hover:text-[#4CAF50] transition-colors"
+              >
+                {link.label}
+                {link.badge && (
+                  <span className="bg-[#4CAF50] text-white px-2 py-0.5 text-xs rounded">
+                    {link.badge}
+                  </span>
+                )}
+              </Link>
+            ))}
+          </div>
+
+          {/* Desktop User Section */}
+          <div className="hidden md:flex items-center gap-4 relative">
+            {isLoggedIn ? (
+              <>
                 <Button
                   variant="outline"
                   size="icon"
-                  className="rounded-full w-9 sm:w-11 h-9 sm:h-11"
+                  className="rounded-full w-10 h-10 relative hover:bg-gray-100"
                 >
-                  <Bell className="h-5 sm:h-6 w-5 sm:w-6" />
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute w-2 h-2 bg-[#4CAF50] rounded-full right-2 top-2" />
                 </Button>
-                <div className="absolute w-2.5 h-2.5 bg-[#4CAF50] rounded-full right-2 top-2 sm:right-2.5 sm:top-3" />
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-9 sm:w-11 h-9 sm:h-11 rounded-full bg-[#CED5D8]" />
-                <span className="font-medium text-sm sm:text-base">User</span>
-                <ChevronDown className="h-4 sm:h-5 w-4 sm:w-5" />
-              </div>
-            </>
-          ) : (
-            <Button
-              onClick={() => router.push("/login")}
-              className="bg-gray-100 flex items-center justify-center gap-2 px-3 sm:px-4 py-1 sm:py-2"
-            >
-              <CgProfile color="#7B00FF" className="text-[18px] sm:text-[20px]" />
-              <p className="text-black text-[14px] sm:text-[15px]">Login</p>
-            </Button>
-          )}
-        </div>
-
-        {/* Mobile Menu Toggle */}
-        <div className="md:hidden flex items-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </Button>
-        </div>
-      </div>
-
-      {/* Mobile Navigation */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-[#E1E1E1] px-[15px] py-4">
-          <div className="flex flex-col gap-4 font-medium text-base text-[#0F0D0D]">
-            <Link href="/">Home</Link>
-            <div className="flex items-center gap-1">
-              <Select>
-                <SelectTrigger className="w-full p-1 ring-0 focus:ring-0 focus:ring-offset-0 border border-[#E1E1E1]">
-                  <SelectValue placeholder="Properties" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Residential">Residential</SelectItem>
-                  <SelectItem value="Commercial">Commercial</SelectItem>
-                  <SelectItem value="Warehouse">Warehouse</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Link href="/dashboard/add-property" className="flex items-center gap-1">
-              Post Property
-              <span className="bg-[#4CAF50] text-white px-2 py-0.5 text-sm rounded text-center">
-                FREE
-              </span>
-            </Link>
-            <Link href="/highlights">Highlights</Link>
-            <Link href="/dashboard/wishlist">Wishlist</Link>
-            {isLoggedIn ? (
-              <>
-                <div className="relative flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="rounded-full w-11 h-11"
+                <div className="relative">
+                  <button
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-100"
                   >
-                    <Bell className="h-6 w-6" />
-                  </Button>
-                  <div className="absolute w-2.5 h-2.5 bg-[#4CAF50] rounded-full right-2.5 top-3" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-11 h-11 rounded-full bg-[#CED5D8]" />
-                  <span className="font-medium">User</span>
+                    <div className="w-10 h-10 rounded-full bg-[#CED5D8]" />
+                    <span className="font-medium hidden lg:block">User</span>
+                    <ChevronDown className="h-4 w-4" />
+                  </button>
+                  {userMenuOpen && (
+                    <div className="absolute top-full right-0 mt-2 w-48 bg-white border rounded-md shadow-lg animate-in fade-in-0 duration-200">
+                      <Link
+                        href="/dashboard/profile"
+                        className="block px-4 py-2 hover:bg-gray-100"
+                      >
+                        My Profile
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
                 </div>
               </>
             ) : (
-              <Button
-                onClick={() => router.push("/login")}
-                className="bg-gray-100 flex items-center justify-center gap-2 w-full py-2"
+              <Link
+                href="/login"
+                className="bg-gray-100 flex items-center gap-2 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors"
               >
-                <CgProfile color="#7B00FF" className="text-[20px]" />
-                <p className="text-black text-[15px]">Login</p>
-              </Button>
+                <CgProfile color="#7B00FF" className="text-xl" />
+                <span className="text-[#0F0D0D] text-sm font-medium">Login</span>
+              </Link>
             )}
           </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </Button>
+          </div>
         </div>
-      )}
-    </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden py-4 animate-in slide-in-from-top-5">
+            <div className="flex flex-col gap-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="flex items-center gap-2 text-base font-medium text-[#0F0D0D] px-2 py-1 hover:bg-gray-100 rounded"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {link.label}
+                  {link.badge && (
+                    <span className="bg-[#4CAF50] text-white px-2 py-0.5 text-xs rounded">
+                      {link.badge}
+                    </span>
+                  )}
+                </Link>
+              ))}
+              {isLoggedIn ? (
+                <div className="space-y-2 px-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-[#CED5D8]" />
+                    <span className="font-medium">User</span>
+                  </div>
+                  <Link
+                    href="/dashboard/profile"
+                    className="block py-2 hover:text-[#4CAF50]"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    My Profile
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left py-2 hover:text-[#4CAF50]"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  href="/login"
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-md mx-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <CgProfile color="#7B00FF" className="text-xl" />
+                  <span className="text-[#0F0D0D] text-sm font-medium">Login</span>
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </nav>
   );
 };

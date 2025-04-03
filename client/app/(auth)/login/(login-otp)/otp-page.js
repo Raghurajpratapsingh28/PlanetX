@@ -31,15 +31,19 @@ export const OTPVerification = ({ mobileNumber }) => {
       const newOtp = [...otp];
       newOtp[index] = value;
       setOtp(newOtp);
+
+      // Auto-focus next input
       if (value && index < 3) {
-        document.getElementById(`otp-${index + 1}`)?.focus();
+        const nextInput = document.getElementById(`otp-${index + 1}`);
+        nextInput?.focus();
       }
     }
   };
 
   const handleKeyDown = (index, e) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
-      document.getElementById(`otp-${index - 1}`)?.focus();
+      const prevInput = document.getElementById(`otp-${index - 1}`);
+      prevInput?.focus();
     }
   };
 
@@ -49,132 +53,144 @@ export const OTPVerification = ({ mobileNumber }) => {
       setError("Please enter a valid 4-digit OTP.");
       return;
     }
-
+  
     setLoading(true);
     setError("");
+  
     try {
+      console.log(enteredOtp, mobileNumber);
       const response = await fetch(`${BACKEND_URL}/auth/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mobile: "+91" + mobileNumber, otp: enteredOtp }),
       });
+  
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Verification failed");
-
+      console.log(data);
+  
+      if (!response.ok) {
+        throw new Error(data.message || "Verification failed");
+      }
+  
+      console.log("Login successful:", data);
+  
+      
       setValue(data.accessToken);
       setRefreshToken(data.refreshedToken);
-      router.push("/");
+  
+      
+      window.location.href = "/";
     } catch (err) {
       setError(err.message || "An error occurred while verifying OTP");
     } finally {
       setLoading(false);
     }
   };
-
+  
+  
   const resendOTP = async () => {
     setTimeLeft(60);
     setIsExpired(false);
     setError("");
+
     try {
       const response = await fetch(`${BACKEND_URL}/auth/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mobile: "+91" + mobileNumber }),
       });
+
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Failed to resend OTP");
+      console.log(data);
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to resend OTP");
+      }
+
+      console.log("OTP resent successfully");
     } catch (err) {
       setError(err.message || "An error occurred while resending OTP");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6 sm:p-8 space-y-6">
+    <div className="flex flex-col items-center justify-center px-4">
+      <div className="max-w-[450px] flex flex-col items-center gap-6">
         {/* Illustration */}
-        <div className="flex justify-center">
+        <div className="relative mt-16 pt-6">
           <Image
             src="/otp-page-image.png"
             alt="OTP Verification Illustration"
-            width={120}
-            height={120}
-            className="w-24 h-24 sm:w-32 sm:h-32 object-contain"
+            width={150}
+            height={150}
+            className="mx-auto"
           />
         </div>
 
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-800">
-            OTP Verification
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600">
-            We&apos;ve sent a verification code to {mobileNumber}
-          </p>
-        </div>
-
-        {/* OTP Input */}
-        <div className="flex justify-center gap-2 sm:gap-4">
-          {otp.map((digit, index) => (
-            <input
-              key={index}
-              id={`otp-${index}`}
-              type="text"
-              inputMode="numeric"
-              value={digit}
-              onChange={(e) => handleOtpChange(index, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(index, e)}
-              className={`w-12 h-12 sm:w-14 sm:h-14 bg-gray-100 rounded-md text-center text-lg sm:text-xl font-medium border ${
-                digit
-                  ? "border-purple-500 text-purple-500"
-                  : "border-gray-300 text-gray-600"
-              } focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors`}
-              maxLength={1}
-              aria-label={`Digit ${index + 1} of OTP`}
-            />
-          ))}
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <p className="text-red-500 text-sm sm:text-base text-center">
-            {error}
-          </p>
-        )}
-
-        {/* Verify Button */}
-        <Button
-          onClick={verifyOTP}
-          disabled={loading}
-          className="w-full py-2 sm:py-3 bg-purple-600 hover:bg-purple-700 text-white text-sm sm:text-base font-medium rounded-md transition-colors"
-        >
-          {loading ? "Verifying..." : "Verify OTP"}
-        </Button>
-
-        {/* Timer and Resend */}
-        <div className="space-y-2 text-center">
-          <div className="flex justify-center items-center gap-1">
-            <span className="text-xs sm:text-sm text-gray-600">
-              Code expires in
-            </span>
-            <span className="text-xs sm:text-sm text-red-500">
-              {timeLeft}s
-            </span>
+        <div className="space-y-4 flex-grow flex flex-col justify-between">
+          {/* Header */}
+          <div className="text-center space-y-1">
+            <h1 className="text-[28px] font-semibold leading-[44px] text-[#0F0D0D]">
+              OTP verification
+            </h1>
+            <p className="text-base text-[#6C696A] px-4">
+              We've sent a Verification Code to {mobileNumber}
+            </p>
           </div>
-          <div className="flex justify-center items-center gap-1">
-            <span className="text-xs sm:text-sm text-gray-600">
-              Didn&apos;t receive the OTP?
-            </span>
-            <button
-              onClick={resendOTP}
-              className={`text-xs sm:text-sm font-medium ${
-                isExpired
-                  ? "text-purple-600 hover:text-purple-700"
-                  : "text-gray-400 cursor-not-allowed"
-              }`}
-              disabled={!isExpired}
-            >
-              Resend OTP
-            </button>
+
+          {/* OTP Input */}
+          <div className="flex justify-center gap-[18px]">
+            {otp.map((digit, index) => (
+              <input
+                key={index}
+                id={`otp-${index}`}
+                type="text"
+                inputMode="numeric"
+                value={digit}
+                onChange={(e) => handleOtpChange(index, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(index, e)}
+                className={`w-[58px] h-[58px] bg-[#F5F5F5] rounded-lg text-center text-[22px] font-medium
+                  ${
+                    digit
+                      ? "border border-[#7B00FF] text-[#7B00FF]"
+                      : "border border-[#E1E1E1]"
+                  }
+                  focus:outline-none focus:border-[#7B00FF] focus:ring-1 focus:ring-[#7B00FF]`}
+                maxLength={1}
+                aria-label={`Digit ${index + 1} of OTP`}
+              />
+            ))}
+          </div>
+
+          {/* Error Message */}
+          {error && <p className="text-red-500 text-center">{error}</p>}
+
+          {/* Verify Button */}
+          <Button
+            onClick={verifyOTP}
+            disabled={loading}
+            className="w-[450px] h-[50px] bg-[#7B00FF] hover:bg-[#7B00FF]/90 rounded-[10px] text-base font-medium"
+          >
+            {loading ? "Verifying..." : "Verify OTP"}
+          </Button>
+
+          {/* Timer and Resend */}
+          <div className="space-y-5">
+            <div className="flex justify-center items-center gap-1">
+              <span className="text-sm text-[#6C696A]">Code expires in</span>
+              <span className="text-sm text-red-500">{timeLeft}s</span>
+            </div>
+            <div className="flex justify-center items-center gap-1">
+              <span className="text-sm text-[#6C696A]">
+                Didn't receive the OTP?
+              </span>
+              <button
+                onClick={resendOTP}
+                className="text-sm text-[#7B00FF] hover:text-[#7B00FF]/90 font-medium"
+              >
+                Resend OTP
+              </button>
+            </div>
           </div>
         </div>
       </div>

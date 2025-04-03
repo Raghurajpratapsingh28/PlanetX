@@ -9,56 +9,56 @@ require("../../modals/PropertyModals/WarehouseSchema");
 require("../../modals/PropertyModals/pgSchema");
 const User = require("../../modals/Users");
 const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-const s3 = require("../../utils/s3");
+const { s3, bucketName } = require("../../utils/s3"); 
+
 exports.addProperty = async (req, res) => {
-  console.log(JSON.parse(req.body.propertyData));
-  console.log("images", req.files.images);
   try {
+    console.log(JSON.parse(req.body.propertyData));
+    console.log("images", req.files.images);
+
     const userId = req.user.userId;
     const propertyData = JSON.parse(req.body.propertyData);
 
     if (!userId || !propertyData) {
-      return res
-        .status(400)
-        .json({ message: "User ID and Property data are required" });
+      return res.status(400).json({ message: "User ID and Property data are required" });
     }
 
     let images = [];
-    if (req.files.images) {
+    if (req.files?.images) {
       images = await Promise.all(
         req.files.images.map(async (file) => {
           const fileName = `${Date.now()}-${file.originalname}`;
-
           const uploadParams = {
-            Bucket: process.env.AWS_BUCKET_NAME,
+            Bucket: bucketName, 
             Key: `properties/images/${fileName}`,
             Body: file.buffer,
+            ContentType: file.mimetype, 
           };
 
-          const result = await s3.send(new PutObjectCommand(uploadParams));
+          await s3.send(new PutObjectCommand(uploadParams));
 
           return {
             name: file.originalname,
-            url: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/properties/images/${fileName}`,
+            url: `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/properties/images/${fileName}`,
           };
         })
       );
     }
 
     let video = null;
-    if (req.files.video) {
+    if (req.files?.video) {
       const videoFile = req.files.video[0];
       const fileName = `${Date.now()}-${videoFile.originalname}`;
-
       const uploadParams = {
-        Bucket: process.env.AWS_BUCKET_NAME,
+        Bucket: bucketName,
         Key: `properties/videos/${fileName}`,
         Body: videoFile.buffer,
+        ContentType: videoFile.mimetype,
       };
 
-      const result = await s3.send(new PutObjectCommand(uploadParams));
+      await s3.send(new PutObjectCommand(uploadParams));
 
-      video = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/properties/videos/${fileName}`;
+      video = `https://${bucketName}.s3.${process.env.AWS_REGION}.amazonaws.com/properties/videos/${fileName}`;
     }
 
     const user = await User.findById(userId);
@@ -78,6 +78,7 @@ exports.addProperty = async (req, res) => {
       video,
     });
 
+    console.log(newProperty);
     const savedProperty = await newProperty.save();
 
     user.properties.push(savedProperty._id);
@@ -89,8 +90,6 @@ exports.addProperty = async (req, res) => {
     });
   } catch (error) {
     console.error("Error adding property:", error);
-    res
-      .status(500)
-      .json({ message: "Error adding property", error: error.message });
+    res.status(500).json({ message: "Error adding property", error: error.message });
   }
 };

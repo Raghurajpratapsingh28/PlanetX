@@ -9,7 +9,6 @@ import { FAQSection } from "../(home)/_components/faq"
 export default function Contact() {
   return (
     <>
-      <Navbar />
       <ContactHeader />
       <ContactForm />
       <FAQSection />

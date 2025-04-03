@@ -1,6 +1,9 @@
-const BACKEND_URL = "http://localhost:3000/api";
+const BACKEND_URL = "http://localhost:4000/api";
 export default BACKEND_URL;
 
-export const token = typeof window !== 'undefined' 
-  ? localStorage.getItem("accessToken")?.replace(/^"|"$/g, "") || "" 
-  : "";
+export const getToken = () => {
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("accessToken")?.replace(/^"|"$/g, "") || null;
+  }
+  return null;
+};

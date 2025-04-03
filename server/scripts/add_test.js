@@ -7,52 +7,45 @@ const Shop = require("../modals/PropertyModals/ShopSchema.js");
 const EventSpace = require("../modals/PropertyModals/EventspaceSchema.js");
 const dummyData = require("./test.js");
 const connectDB = require("../config/db.js");
-const { default: PG } = require("../modals/PropertyModals/pgSchema.js");
+const PG = require("../modals/PropertyModals/pgSchema.js"); 
 
-exports.pushTestData = async () => {
+const pushTestData = async () => {
   try {
     console.log("Connecting to database");
     await connectDB();
+    
     for (const data of dummyData) {
       switch (data.category) {
         case "Warehouse":
-          const warehouse = new Warehouse(data);
-          await warehouse.save();
+          await new Warehouse(data).save();
           console.log("Warehouse data saved successfully");
           break;
         case "PG":
-          const pg = new PG(data);
-          await pg.save();
+          await new PG(data).save();
           console.log("PG data saved successfully");
           break;
         case "Residential":
-          const residential = new Residential(data);
-          await residential.save();
+          await new Residential(data).save();
           console.log("Residential data saved successfully");
           break;
         case "Hotel":
-          const hotel = new Hotel(data);
-          await hotel.save();
+          await new Hotel(data).save();
           console.log("Hotel data saved successfully");
           break;
         case "Office":
-          const office = new Office(data);
-          await office.save();
+          await new Office(data).save();
           console.log("Office data saved successfully");
           break;
         case "Shared Warehouse":
-          const sharedWarehouse = new SharedWarehouse(data);
-          await sharedWarehouse.save();
+          await new SharedWarehouse(data).save();
           console.log("Shared Warehouse data saved successfully");
           break;
         case "Shop":
-          const shop = new Shop(data);
-          await shop.save();
+          await new Shop(data).save();
           console.log("Shop data saved successfully");
           break;
         case "EventSpace":
-          const eventSpace = new EventSpace(data);
-          await eventSpace.save();
+          await new EventSpace(data).save();
           console.log("Event Space data saved successfully");
           break;
         default:
@@ -63,3 +56,5 @@ exports.pushTestData = async () => {
     console.error("Error saving test data:", error);
   }
 };
+
+module.exports = { pushTestData };

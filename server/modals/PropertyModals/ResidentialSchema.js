@@ -7,11 +7,11 @@ const residentialSchema = new Schema(
     about: {
       bedrooms: { type: Number, required: true },
       bathrooms: { type: Number, required: true },
-      balconies: { type: Number, required: true },
+      balconies: { type: Number, default: false },
     },
     propertyArea: {
-      carpetArea: { type: Number, required: true },
-      builtUpArea: { type: Number, required: true },
+      carpetArea: { type: Number, required: false },
+      builtUpArea: { type: Number, required: false },
     },
     otherRooms: {
       poojaRoom: { type: Boolean, default: false },
