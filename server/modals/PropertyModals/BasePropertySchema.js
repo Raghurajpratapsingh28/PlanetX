@@ -4,11 +4,11 @@ const Schema = mongoose.Schema;
 
 const basePropertySchema = new Schema(
   {
-    user: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    user: { type: Schema.Types.ObjectId, ref: "User", required: false },
     propertyType: {
       type: String,
       enum: ["For Sale", "For Rent", "Commercial"],
-      required: true,
+      required: false,
     },
     category: {
       type: String,
@@ -22,7 +22,7 @@ const basePropertySchema = new Schema(
         "Shared Warehouse",
         "EventSpace",
       ],
-      required: true,
+      required: false,
     },
     role: {
       type: String,
@@ -35,12 +35,12 @@ const basePropertySchema = new Schema(
         "Builder",
         "Dealer",
       ],
-      required: true,
+      required: false,
     },
     location: {
-      city: { type: String, required: true },
-      state: { type: String, required: true },
-      locality: { type: String, required: true },
+      city: { type: String, required: false },
+      state: { type: String, required: false },
+      locality: { type: String, required: false },
       subLocality: { type: String },
       apartment: { type: String },
       houseNumber: { type: String },
@@ -49,12 +49,12 @@ const basePropertySchema = new Schema(
       type: String,
       enum: ["Active", "On-Hold"],
       default: "Active",
-      required: true,
+      required: false,
     },
     images: [
       {
-        name: { type: String, required: true },
-        url: { type: String, required: true },
+        name: { type: String, required: false },
+        url: { type: String, required: false },
       },
     ],
     video: { type: String },

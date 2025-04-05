@@ -7,7 +7,7 @@ const sharedWorkspaceSchema = new Schema(
     subCategory: {
       type: String,
       enum: ["Shared Workspace"],
-      required: true,
+      required: false,
     },
     types: {
       type: [String],
@@ -18,10 +18,10 @@ const sharedWorkspaceSchema = new Schema(
         "Meeting Room",
         "Conference Room",
       ],
-      required: true,
+      required: false,
     },
     propertyDetails: {
-      workspaceName: { type: String, required: true },
+      workspaceName: { type: String, required: false },
       type: {
         type: String,
         enum: [
@@ -31,23 +31,23 @@ const sharedWorkspaceSchema = new Schema(
           "Meeting Room",
           "Conference Room",
         ],
-        required: true,
+        required: false,
       },
 
       capacity: {
-        totalSeats: { type: Number, required: true },
-        availableSeats: { type: Number, required: true },
+        totalSeats: { type: Number, required: false },
+        availableSeats: { type: Number, required: false },
       },
     },
     pricing: {
       price: {
-        amount: { type: Number, required: true },
-        currency: { type: String, required: true, enum: ["INR"] },
+        amount: { type: Number, required: false },
+        currency: { type: String, required: false, enum: ["INR"] },
       },
       maintenanceCharges: {
-        amount: { type: Number, required: true },
-        currency: { type: String, required: true, enum: ["INR"] },
-        frequency: { type: String, required: true, enum: ["Monthly"] },
+        amount: { type: Number, required: false },
+        currency: { type: String, required: false, enum: ["INR"] },
+        frequency: { type: String, required: false, enum: ["Monthly"] },
       },
       rentalDetails: {
         monthlyRent: { type: Number },
@@ -55,7 +55,7 @@ const sharedWorkspaceSchema = new Schema(
         hourlyRent: { type: Number },
       },
     },
-    description: { type: String, required: true },
+    description: { type: String, required: false },
     amenities: {
       highSpeedWiFi: { type: Boolean, default: false },
       powerBackup: { type: Boolean, default: false },
@@ -70,23 +70,23 @@ const sharedWorkspaceSchema = new Schema(
       receptionServices: { type: Boolean, default: false },
     },
     workspaceFeatures: {
-      privateAccess: { type: Boolean, required: true },
-      dedicatedSpace: { type: Boolean, required: true },
-      lockableOffice: { type: Boolean, required: true },
-      availabilityStatus: { type: String, required: true },
-      availableFrom: { type: Date, required: true },
+      privateAccess: { type: Boolean, required: false },
+      dedicatedSpace: { type: Boolean, required: false },
+      lockableOffice: { type: Boolean, required: false },
+      availabilityStatus: { type: String, required: false },
+      availableFrom: { type: Date, required: false },
     },
     meetingAndEventSpaces: {
-      projector: { type: Boolean, required: true },
-      whiteboard: { type: Boolean, required: true },
-      videoConferencing: { type: Boolean, required: true },
+      projector: { type: Boolean, required: false },
+      whiteboard: { type: Boolean, required: false },
+      videoConferencing: { type: Boolean, required: false },
       soundSystem: { type: Boolean },
       cateringServices: { type: Boolean },
     },
     bookingDetails: {
-      minimumBookingDuration: { type: String, required: true },
-      maximumBookingDuration: { type: String, required: true },
-      cancellationPolicy: { type: String, required: true },
+      minimumBookingDuration: { type: String, required: false },
+      maximumBookingDuration: { type: String, required: false },
+      cancellationPolicy: { type: String, required: false },
     },
     additionalDetails: {
       nearbyPlaces: {
@@ -101,10 +101,10 @@ const sharedWorkspaceSchema = new Schema(
         busStation: { type: Boolean, default: false },
       },
       rules: {
-        operatingHours: { type: String, required: true },
-        quietHours: { type: String, required: true },
-        petFriendly: { type: Boolean, required: true },
-        smokingAllowed: { type: Boolean, required: true },
+        operatingHours: { type: String, required: false },
+        quietHours: { type: String, required: false },
+        petFriendly: { type: Boolean, required: false },
+        smokingAllowed: { type: Boolean, required: false },
       },
     },
     ageOfProperty: { type: Number },

@@ -21,7 +21,7 @@ const residentialSchema = new Schema(
     },
     furnishingStatus: {
       type: String,
-      required: true,
+      required: false,
     },
     furnishingDetails: {
       fans: { type: Number, default: 0 },

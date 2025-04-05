@@ -7,32 +7,32 @@ const officeSchema = new Schema(
     subCategory: {
       type: String,
       enum: ["Office"],
-      required: true,
+      required: false,
     },
     transactionType: {
       type: String,
       enum: ["For Sale", "For Rent", "Hourly Basis"],
-      required: true,
+      require: false,
     },
     propertyDetails: {
-      propertyName: { type: String, required: true },
+      propertyName: { type: String, required: false },
       officeType: {
         type: String,
         enum: ["Commercial Office", "Co-Working Space", "Business Center"],
-        required: true,
+        required: false,
       },
       builtUpArea: {
-        size: { type: Number, required: true },
-        unit: { type: String, required: true, enum: ["sq ft"] },
+        size: { type: Number, required: false },
+        unit: { type: String, required: false, enum: ["sq ft"] },
       },
       carpetArea: {
-        size: { type: Number, required: true },
-        unit: { type: String, required: true, enum: ["sq ft"] },
+        size: { type: Number, required: false },
+        unit: { type: String, required: false, enum: ["sq ft"] },
       },
       furnishedStatus: {
         type: String,
         enum: ["Fully Furnished", "Semi-Furnished", "Unfurnished"],
-        required: true,
+        required: false,
       },
       furnishingDetails: {
         workstations: { type: Number },
@@ -51,13 +51,13 @@ const officeSchema = new Schema(
     },
     pricing: {
       price: {
-        amount: { type: Number, required: true },
-        currency: { type: String, required: true, enum: ["INR"] },
+        amount: { type: Number, required: false },
+        currency: { type: String, required: false, enum: ["INR"] },
       },
       maintenanceCharges: {
-        amount: { type: Number, required: true },
-        currency: { type: String, required: true, enum: ["INR"] },
-        frequency: { type: String, required: true, enum: ["Monthly"] },
+        amount: { type: Number, required: false },
+        currency: { type: String, required: false, enum: ["INR"] },
+        frequency: { type: String, required: false, enum: ["Monthly"] },
       },
       rentalDetails: {
         monthlyRent: { type: Number },
@@ -88,12 +88,12 @@ const officeSchema = new Schema(
       buildingType: {
         type: String,
         enum: ["Standalone Building", "IT Park", "Commercial Complex"],
-        required: true,
+        required: false,
       },
       grade: {
         type: String,
         enum: ["Grade A", "Grade B", "Grade C"],
-        required: true,
+        required: false,
       },
       fireSafetyCompliance: { type: Boolean },
       wheelChairAccessibility: { type: Boolean },
@@ -121,7 +121,7 @@ const officeSchema = new Schema(
       visitorEntryPolicy: { type: String },
     },
     rules: {
-      operatingHours: { type: String, required: true },
+      operatingHours: { type: String, required: false },
       smokingAllowed: { type: Boolean },
       alcoholAllowed: { type: Boolean },
       quietHours: { type: String },
@@ -133,8 +133,8 @@ const officeSchema = new Schema(
         },
       },
     },
-    availabilityStatus: { type: String, required: true },
-    availableFrom: { type: Date, required: true },
+    availabilityStatus: { type: String, required: false },
+    availableFrom: { type: Date, required: false },
     nearbyPlaces: {
       hospital: { type: Boolean, default: false },
       school: { type: Boolean, default: false },
@@ -146,8 +146,8 @@ const officeSchema = new Schema(
       highway: { type: Boolean, default: false },
       busStation: { type: Boolean, default: false },
     },
-    ageOfProperty: { type: Number, required: true },
-    description: { type: String, required: true },
+    ageOfProperty: { type: Number, required: false },
+    description: { type: String, required: false },
   },
   { timestamps: true }
 );

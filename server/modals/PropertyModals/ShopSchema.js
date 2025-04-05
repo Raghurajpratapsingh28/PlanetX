@@ -12,10 +12,10 @@ const retailShopSchema = new Schema(
     transactionType: {
       type: [String],
       enum: ["For Sale", "For Rent", "Hourly Basis"],
-      required: true,
+      required: false,
     },
     propertyDetails: {
-      propertyName: { type: String, required: true },
+      propertyName: { type: String, required: false },
       shopType: {
         type: String,
         enum: [
@@ -24,15 +24,15 @@ const retailShopSchema = new Schema(
           "High-Street Retail",
           "Kiosk",
         ],
-        required: true,
+        required: false,
       },
       builtUpArea: {
-        size: { type: Number, required: true },
-        unit: { type: String, required: true, enum: ["sq ft"] },
+        size: { type: Number, required: false },
+        unit: { type: String, required: false, enum: ["sq ft"] },
       },
       carpetArea: {
-        size: { type: Number, required: true },
-        unit: { type: String, required: true, enum: ["sq ft"] },
+        size: { type: Number, required: false },
+        unit: { type: String, required: false, enum: ["sq ft"] },
       },
       furnishedStatus: {
         type: [String],
@@ -40,29 +40,29 @@ const retailShopSchema = new Schema(
         required: true,
       },
       furnishingDetails: {
-        shelves: { type: Number, required: true },
-        displayRacks: { type: Number, required: true },
-        cashCounter: { type: Number, required: true },
-        airConditioning: { type: Boolean, required: true },
-        cctvCameras: { type: Number, required: true },
-        powerBackup: { type: Boolean, required: true },
-        washroom: { type: Boolean, required: true },
-        pantry: { type: Boolean, required: true },
+        shelves: { type: Number, required: false },
+        displayRacks: { type: Number, required:false },
+        cashCounter: { type: Number, required:false },
+        airConditioning: { type: Boolean, required:false },
+        cctvCameras: { type: Number, required:false },
+        powerBackup: { type: Boolean, required:false },
+        washroom: { type: Boolean, required:false },
+        pantry: { type: Boolean, required:false },
       },
       floorDetails: {
-        totalFloors: { type: Number, required: true },
-        shopOnFloor: { type: Number, required: true },
+        totalFloors: { type: Number, required: false },
+        shopOnFloor: { type: Number, required: false },
       },
     },
     pricing: {
       price: {
-        amount: { type: Number, required: true },
-        currency: { type: String, required: true, enum: ["INR"] },
+        amount: { type: Number, required: false },
+        currency: { type: String, required: false, enum: ["INR"] },
       },
       maintenanceCharges: {
-        amount: { type: Number, required: true },
-        currency: { type: String, required: true, enum: ["INR"] },
-        frequency: { type: String, required: true, enum: ["Monthly"] },
+        amount: { type: Number, required: false },
+        currency: { type: String, required: false, enum: ["INR"] },
+        frequency: { type: String, required: false, enum: ["Monthly"] },
       },
       rentalDetails: {
         monthlyRent: { type: Number },
@@ -88,7 +88,7 @@ const retailShopSchema = new Schema(
       buildingType: {
         type: String,
         enum: ["Standalone Building", "Shopping Mall", "Mixed-Use Complex"],
-        required: true,
+        required: false,
       },
       fireSafetyCompliance: { type: Boolean },
       wheelChairAccessibility: { type: Boolean },
@@ -98,29 +98,29 @@ const retailShopSchema = new Schema(
     },
     shopFeatures: {
       shopFrontage: {
-        length: { type: Number, required: true },
-        unit: { type: String, required: true, enum: ["ft"] },
+        length: { type: Number, required: false },
+        unit: { type: String, required: false, enum: ["ft"] },
       },
       height: {
-        value: { type: Number, required: true },
-        unit: { type: String, required: true, enum: ["ft"] },
+        value: { type: Number, required: false },
+        unit: { type: String, required: false, enum: ["ft"] },
       },
       parkingAvailability: {
         type: [String],
         enum: ["Dedicated", "Public", "None"],
-        required: true,
+        required: false,
       },
-      waterSupply: { type: Boolean, required: true },
+      waterSupply: { type: Boolean, required: false },
       electricityLoad: {
-        value: { type: Number, required: true },
-        unit: { type: String, required: true, enum: ["kW"] },
+        value: { type: Number, required: false },
+        unit: { type: String, required: false, enum: ["kW"] },
       },
       shutterType: {
         type: [String],
         enum: ["Manual", "Automatic"],
-        required: true,
+        required: false,
       },
-      advertisingSpace: { type: Boolean, required: true },
+      advertisingSpace: { type: Boolean, required: false },
     },
     additionalFeatures: {
       petFriendly: { type: Boolean },
@@ -130,7 +130,7 @@ const retailShopSchema = new Schema(
       visitorEntryPolicy: { type: String },
     },
     rules: {
-      operatingHours: { type: String, required: true },
+      operatingHours: { type: String, required: false },
       smokingAllowed: { type: Boolean },
       alcoholAllowed: { type: Boolean },
       quietHours: { type: String },
@@ -153,10 +153,10 @@ const retailShopSchema = new Schema(
       highway: { type: Boolean, default: false },
       busStation: { type: Boolean, default: false },
     },
-    availabilityStatus: { type: String, required: true },
-    availableFrom: { type: Date, required: true },
-    ageOfProperty: { type: Number, required: true },
-    description: { type: String, required: true },
+    availabilityStatus: { type: String, required: false },
+    availableFrom: { type: Date, required: false },
+    ageOfProperty: { type: Number, required: false },
+    description: { type: String, required: false },
   },
   { timestamps: true }
 );
