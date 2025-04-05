@@ -24,9 +24,9 @@ const startServer = async () => {
     await connectDB();
 
     
-    if (process.env.NODE_ENV !== "production") {
-      await pushTestData();
-    }
+    // if (process.env.NODE_ENV !== "production") {
+    //   await pushTestData();
+    // }
 
     app.get("/", (req, res) => {
       res.send("Server is Ready");

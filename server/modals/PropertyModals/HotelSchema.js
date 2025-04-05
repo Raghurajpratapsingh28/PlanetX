@@ -7,10 +7,10 @@ const hotelSchema = new Schema(
     subCategory: {
       type: [String],
       enum: ["Hotel", "Dormitory"],
-      required: true,
+      required: false,
     },
     propertyDetails: {
-      propertyName: { type: String, required: true },
+      propertyName: { type: String, required: false },
       propertyType: {
         type: [String],
         enum: [
@@ -23,10 +23,10 @@ const hotelSchema = new Schema(
           "Hostel",
           "Shared Dormitory",
         ],
-        required: true,
+        required: false,
       },
-      starRating: { type: Number, min: 1, max: 5, required: true },
-      totalRooms: { type: Number, required: true },
+      starRating: { type: Number, min: 1, max: 5, required: false },
+      totalRooms: { type: Number, required: false },
       roomTypes: {
         type: [String],
         enum: [
@@ -36,20 +36,20 @@ const hotelSchema = new Schema(
           "Dormitory Bed",
           "Family Room",
         ],
-        required: true,
+        required: false,
       },
     },
     roomDetails: {
-      roomType: { type: String, required: true },
-      roomSize: { type: String, required: true },
-      beds: { type: Number, required: true },
-      bathroomType: { type: String, required: true },
-      airConditioning: { type: Boolean, required: true },
-      balcony: { type: Boolean, required: true },
-      smokingAllowed: { type: Boolean, required: true },
-      occupancy: { type: String, required: true },
-      pricePerNight: { type: Number, required: true },
-      availability: { type: Boolean, required: true },
+      roomType: { type: String, required: false },
+      roomSize: { type: String, required: false },
+      beds: { type: Number, required: false },
+      bathroomType: { type: String, required: false },
+      airConditioning: { type: Boolean, required: false },
+      balcony: { type: Boolean, required: false },
+      smokingAllowed: { type: Boolean, required: false },
+      occupancy: { type: String, required: false },
+      pricePerNight: { type: Number, required: false },
+      availability: { type: Boolean, required: false },
     },
     amenities: {
       wifi: { type: Boolean },
@@ -84,7 +84,7 @@ const hotelSchema = new Schema(
       availableCuisines: {
         type: String,
         enum: ["Indian", "Continental", "Chinese", "Italian", "Local Cuisine"],
-        required: true,
+        required: false,
       },
       specialDietaryMeals: {
         vegetarian: { type: Boolean },
@@ -125,8 +125,8 @@ const hotelSchema = new Schema(
       busStation: { type: Boolean, default: false },
     },
     rules: {
-      checkInTime: { type: String, required: true },
-      checkOutTime: { type: String, required: true },
+      checkInTime: { type: String, required: false },
+      checkOutTime: { type: String, required: false },
       smokingAllowed: { type: Boolean },
       alcoholAllowed: { type: Boolean },
       petsAllowed: { type: Boolean },
@@ -150,15 +150,15 @@ const hotelSchema = new Schema(
       tourGuidance: { type: Boolean },
     },
     pricing: {
-      basePricePerNight: { type: Number, required: true },
+      basePricePerNight: { type: Number, required: false },
       discountedPrice: { type: Number },
-      taxes: { type: Number, required: true },
-      finalPrice: { type: Number, required: true },
+      taxes: { type: Number, required: false },
+      finalPrice: { type: Number, required: false },
     },
-    availabilityStatus: { type: String, required: true },
-    availableFrom: { type: Date, required: true },
+    availabilityStatus: { type: String, required: false },
+    availableFrom: { type: Date, required: false },
     ageOfProperty: { type: Number },
-    description: { type: String, required: true },
+    description: { type: String, required: false },
   },
   { timestamps: true }
 );

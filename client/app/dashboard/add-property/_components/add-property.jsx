@@ -96,6 +96,8 @@ export function AddPropertyForm() {
     for (let pair of formData.entries()) {
       console.log(pair[0], pair[1]);
     }
+
+    console.log(formData);
   
     try {
       const response = await axios.post(
@@ -109,6 +111,8 @@ export function AddPropertyForm() {
         }
       );
   
+    console.log(response.data);
+
       toast({
         title: "Success",
         description: "Property added successfully!",

@@ -67,9 +67,10 @@ exports.addProperty = async (req, res) => {
     }
 
     const PropertyCategory = Property.discriminators[propertyData.category];
-    if (!PropertyCategory) {
-      return res.status(400).json({ message: "Invalid property category" });
-    }
+    console.log(PropertyCategory);
+    // if (!PropertyCategory) {
+    //   return res.status(400).json({ message: "Valid Property Category required!" });
+    // }
 
     const newProperty = new PropertyCategory({
       ...propertyData,

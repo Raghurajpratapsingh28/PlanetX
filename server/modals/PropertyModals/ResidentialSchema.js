@@ -5,8 +5,8 @@ const { Schema } = mongoose;
 const residentialSchema = new Schema(
   {
     about: {
-      bedrooms: { type: Number, required: true },
-      bathrooms: { type: Number, required: true },
+      bedrooms: { type: Number, required: false },
+      bathrooms: { type: Number, required: false },
       balconies: { type: Number, default: false },
     },
     propertyArea: {
@@ -45,8 +45,8 @@ const residentialSchema = new Schema(
       waterPurifier: { type: Boolean, default: false },
       washingMachine: { type: Boolean, default: false },
     },
-    totalFloors: { type: Number, required: true },
-    propertyOnFloor: { type: Number, required: true },
+    totalFloors: { type: Number, required: false },
+    propertyOnFloor: { type: Number, required: false },
     flatNumber: { type: String },
     parking: {
       covered: { type: Number, default: 0 },
@@ -95,11 +95,11 @@ const residentialSchema = new Schema(
     },
     availabilityStatus: {
       type: String,
-      required: true,
+      required: false,
     },
     pricing: {
-      expectedPrice: { type: Number, required: true },
-      PricePerSqft: { type: Number, required: true },
+      expectedPrice: { type: Number, required: false },
+      PricePerSqft: { type: Number, required: false },
       maintenanceFrequency: {
         type: String,
         enum: ["monthly", "yearly", "quarterly"],
@@ -110,7 +110,7 @@ const residentialSchema = new Schema(
     },
     availableFrom: { type: Date },
     ageOfProperty: { type: Number },
-    description: { type: String, required: true },
+    description: { type: String, required: false },
   },
   { timestamps: true }
 );
