@@ -67,7 +67,7 @@ export const FAQSection = () => {
               <span className="text-xl font-medium text-[#0F0D0D] text-center flex-grow">
                 {faq.question}
               </span>
-              <ChevronDown className="h-[35px] w-[35px] shrink-0 text-[#0F0D0D] transition-transform duration-200" />
+              {/* <ChevronDown className="h-[35px] w-[35px] shrink-0 text-[#0F0D0D] transition-transform duration-200" /> */}
             </AccordionTrigger>
             <AccordionContent className="bg-[#F5F5F5] border-x border-b border-[#E1E1E1] rounded-b-xl">
               <div className="p-5">

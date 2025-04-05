@@ -2,10 +2,11 @@ const User = require("../../modals/Users");
 
 const getAllUsers = async (req, res) => {
   try {
-    const role = req.user.role;
-    if (role !== "admin") {
-      return res.status(403).json({ message: "You are not an admin" });
-    }
+    // const role = req.user.role;
+    // console.log(role);
+    // if (role !== "admin") {
+    //   return res.status(403).json({ message: "You are not an admin" });
+    // }
     const users = await User.find()
       .select(
         "name mobile city email role whatsappMobile feedbacksGiven reviews"
