@@ -6,7 +6,7 @@ import { AddPropertyForm } from "./_components/add-property";
 export default function AddPropertyPage() {
   
   useEffect(()=>{
-    const token = localStorage.getItem("accessToken")
+    const token = localStorage.getItem("accessToken");
     if(!token){
       window.location.href="/login"
     }

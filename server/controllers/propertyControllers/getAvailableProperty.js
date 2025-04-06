@@ -15,7 +15,7 @@ exports.getAvailableProperties = async (req, res) => {
 
     const availableProperties = await Property.find({
       propertyStatus: "Active",
-      user: { $ne: userId },
+      // user: { $ne: userId }, will uncomment when we have more users
     })
       .populate({
         path: "reviews",

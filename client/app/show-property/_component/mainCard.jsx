@@ -16,19 +16,21 @@ const MainCard = () => {
 
   useEffect(() => {
     const fetchPropertyData = async () => {
-      const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
+      let token = localStorage.getItem("accessToken");
+      token = token.replace(/^"|"$/g, "");
+      // console.log(token);
       if (!token) return;
-
       // Build query string from URL search params
       const query = new URLSearchParams(searchParams).toString();
 
       try {
         const response = await axios.get(
-          `${BACKEND_URL}/properties/availableProperty?${query}`,
+          `${BACKEND_URL}/properties/availableProperty`,
           {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: token },
           }
         );
+        console.log("Response data:", response.data);
         setPropertyData(response.data.properties || []);
       } catch (error) {
         console.error("Error fetching property data:", error);
@@ -85,7 +87,7 @@ const MainCard = () => {
                 <div className="flex flex-col md:flex-row justify-between items-start">
                   <div>
                     <h3 className="font-semibold text-lg">{property.name}</h3>
-                    <p className="text-sm text-gray-600">{property.location}</p>
+                    <p className="text-sm text-gray-600">{JSON.stringify(property.location)}</p>
                   </div>
 
                   {/* Reviews */}
