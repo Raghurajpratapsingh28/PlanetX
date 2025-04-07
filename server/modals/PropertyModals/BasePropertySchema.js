@@ -59,6 +59,12 @@ const basePropertySchema = new Schema(
     ],
     video: { type: String },
     reviews: [{ type: Schema.Types.ObjectId, ref: "Review" }],
+    pricing:[{type:Number }],
+    description: { type: String, required: false },
+   
+   
+    
+    
   },
   { timestamps: true, discriminatorKey: "category" }
 );

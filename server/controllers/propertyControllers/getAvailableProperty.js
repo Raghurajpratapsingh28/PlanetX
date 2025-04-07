@@ -21,7 +21,7 @@ exports.getAvailableProperties = async (req, res) => {
         path: "reviews",
         populate: { path: "user", select: "name email" },
       })
-      .select("name price location area propertyStatus imageUrl reviews")
+      .select("name user pricing description role propertyType location area propertyStatus category images reviews")
       .lean();
 
     res.status(200).json({
@@ -29,6 +29,7 @@ exports.getAvailableProperties = async (req, res) => {
       total: availableProperties.length,
       properties: availableProperties,
     });
+    // console.log("available properties",availableProperties)
   } catch (error) {
     console.error("Error fetching available properties:", error);
     res.status(500).json({

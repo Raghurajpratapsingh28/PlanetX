@@ -1,7 +1,7 @@
 const User = require("../../modals/Users");
 
 exports.getActiveProperties = async (req, res) => {
-  const { mobile } = req.body;
+  const  mobile  = req.user.mobile;
   if (!mobile) {
     return res.status(400).json({ error: "Mobile number is required." });
   }
