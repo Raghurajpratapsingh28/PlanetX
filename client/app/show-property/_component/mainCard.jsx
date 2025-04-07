@@ -31,7 +31,8 @@ const MainCard = () => {
         const properties = response.data.properties || [];
         setPropertyData(properties);
         setFilteredProperties(properties);
-        console.log(properties);
+        // console.log(properties);
+        // console.log(properties.images[0].url);
       } catch (error) {
         console.error("Error fetching property data:", error);
       } finally {
@@ -41,7 +42,7 @@ const MainCard = () => {
 
     fetchPropertyData();
   }, [searchParams]);
-
+  
   // Filter properties based on search term
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
@@ -75,6 +76,8 @@ const MainCard = () => {
           reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length
         ).toFixed(1)
       : null;
+
+
 
   return (
     <section className="flex-1 p-4 md:p-6 max-w-full">
@@ -114,8 +117,7 @@ const MainCard = () => {
                       property.images?.[0]?.url || "/default-property.jpg"
                     }
                     alt={property.name || "Property"}
-                    fill
-                    className="rounded-lg object-cover"
+                    className="rounded-lg object-cover w-full h-full"
                   />
                   <Button
                     variant="ghost"
@@ -169,10 +171,10 @@ const MainCard = () => {
                     <div className="mt-3 flex flex-col sm:flex-row gap-4">
                       <div className="min-w-[100px]">
                         <p className="text-lg font-semibold text-gray-800">
-                          {property?.pricing?.price?.amount
-                            ? `₹${property.pricing.price.amount.toLocaleString("en-IN")}`
-                            : property?.pricing?.monthlyRent
-                            ? `₹${property.pricing.monthlyRent.toLocaleString("en-IN")}/mo`
+                          {property?.pricing?.expectedPrice
+                            ? `₹${property.pricing.expectedPrice.toLocaleString("en-IN")}`
+                            // : property?.pricing?.monthlyRent
+                            // ? `₹${property.pricing.monthlyRent.toLocaleString("en-IN")}/mo`
                             : "N/A"}
                         </p>
                         <p className="text-xs text-gray-500">Price</p>

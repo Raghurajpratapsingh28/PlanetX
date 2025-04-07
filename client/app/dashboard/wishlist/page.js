@@ -89,8 +89,8 @@ const WishListPage = () => {
             },
           }
         );
-        console.log("wishlist Response:", wishlistResponse.data);
-        console.log(`${BACKEND_URL}/wishlist/get-wishlist/${currentUserId}`);
+        // console.log("wishlist Response:", wishlistResponse.data);
+        // console.log(`${BACKEND_URL}/wishlist/get-wishlist/${currentUserId}`);
         // console.log("wishlist Response:",wishlistResponse);
 
         if (wishlistResponse.status === 200) {
@@ -156,6 +156,19 @@ const WishListPage = () => {
   const handleFilterChange = (key) => {
     setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+// console.log("Wishlists:", wishlists);
+
+//Isko uncomment mat karna ya erase mat krna
+// const propertyId = wishlists.map((wishlist) => wishlist.properties.map((prop) => prop._id));
+
+//   const fetchPropertyData = async (propertyId) => {
+//     try {
+//       const response = axios.get(`${BACKEND_URL}/properties/availableProperty`, {})
+//     } catch (error) {
+      
+//     }
+//   } 
 
   const filteredWishlists = wishlists.filter((wishlist) => {
     const propertyTypes = wishlist.properties.map((prop) => prop.type);
