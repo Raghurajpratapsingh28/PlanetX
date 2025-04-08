@@ -54,6 +54,7 @@ router.patch(
   uploadToS3,
   updateProperty
 );
+
 router.get("/alluser-properties", getActiveProperties);
 router.post("/deleteProperty", submitFeedbackAndDeleteProperty);
 router.get("/availableProperty", getAvailableProperties);

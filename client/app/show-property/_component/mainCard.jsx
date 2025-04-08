@@ -31,7 +31,7 @@ const MainCard = () => {
         const properties = response.data.properties || [];
         setPropertyData(properties);
         setFilteredProperties(properties);
-        // console.log(properties);
+        console.log(properties);
         // console.log(properties.images[0].url);
       } catch (error) {
         console.error("Error fetching property data:", error);
@@ -170,11 +170,11 @@ const MainCard = () => {
 
                     <div className="mt-3 flex flex-col sm:flex-row gap-4">
                       <div className="min-w-[100px]">
-                        <p className="text-lg font-semibold text-gray-800">
-                          {property?.pricing?.expectedPrice
-                            ? `₹${property.pricing.expectedPrice.toLocaleString("en-IN")}`
-                            // : property?.pricing?.monthlyRent
-                            // ? `₹${property.pricing.monthlyRent.toLocaleString("en-IN")}/mo`
+                      <p className="text-lg font-semibold text-gray-800">
+                          {property?.pricing?.price?.amount
+                            ? `₹${property.pricing.price.amount.toLocaleString("en-IN")}`
+                            : property?.pricing?.monthlyRent
+                            ? `₹${property.pricing.monthlyRent.toLocaleString("en-IN")}/mo`
                             : "N/A"}
                         </p>
                         <p className="text-xs text-gray-500">Price</p>
