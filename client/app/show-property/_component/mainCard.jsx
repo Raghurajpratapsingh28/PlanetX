@@ -56,6 +56,8 @@ const MainCard = () => {
     setFilteredProperties(filtered);
   };
 
+console.log("Filtered Properties:",filteredProperties);
+
   // adress ko sahi se kia hai 
   const getFullAddress = (location) =>
     [

@@ -89,33 +89,46 @@ const WishListPage = () => {
           }
         );
 
+        console.log("Wishlist Response:", wishlistResponse.data);
+
         if (wishlistResponse.status === 200) {
-          const wishlistsData = wishlistResponse.data.wishlists;
+          const wishlistsData = wishlistResponse.data.wishlistsData;
           console.log("Wishlists Data:", wishlistsData);
           if (!wishlistsData || !Array.isArray(wishlistsData)) {
             throw new Error("Invalid wishlist data format");
           }
 
-          const validatedWishlists = wishlistsData.map(wishlist => {
-            if (!wishlist.properties || wishlist.properties.length === 0) {
-              console.warn(`Wishlist ${wishlist._id} has no properties`);
-              return { ...wishlist, properties: [] };
-            }
-            const validProperties = wishlist.properties.filter(prop => {
-              if (!prop._id) {
-                console.error(`Invalid property in wishlist ${wishlist._id}:`, prop);
-                return false;
-              }
-              return true;
-            });
-            return { ...wishlist, properties: validProperties };
-          });
+          // const property = await axios.get(`${BACKEND_URL}/properties/availableProperty`, {
+          //   headers: {
+          //     Authorization: token,
+          //   }
+          // })
 
-          setWishlists(validatedWishlists);
+          // console.log("Property Data:", property.data.properties);
+
+          // const getFilteredProperty = property.data.properties.filter((property) => {
+            
+          // })
+          // const validatedWishlists = wishlistsData.map(wishlist => {
+          //   if (!wishlist.properties || wishlist.properties.length === 0) {
+          //     console.warn(`Wishlist ${wishlist._id} has no properties`);
+          //     return { ...wishlist, properties: [] };
+          //   }
+          //   const validProperties = wishlist.properties.filter(prop => {
+          //     if (!prop._id) {
+          //       console.error(`Invalid property in wishlist ${wishlist._id}:`, prop);
+          //       return false;
+          //     }
+          //     return true;
+          //   });
+          //   return { ...wishlist, properties: validProperties };
+          // });
+
+          setWishlists(wishlistsData);
           
-          if (validatedWishlists.every(w => w.properties.length === 0)) {
-            throw new Error("Failed to fetch property");
-          }
+          // if (validatedWishlists.every(w => w.properties.length === 0)) {
+          //   throw new Error("Failed to fetch property");
+          // }
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -134,24 +147,26 @@ const WishListPage = () => {
     fetchUserAndWishlists();
   }, [router, toast]);
 
-  const handleSortChange = (value) => {
-    setSortBy(value);
-    const sortedWishlists = [...wishlists];
-    if (value === "asc") {
-      sortedWishlists.sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-      );
-    } else if (value === "desc") {
-      sortedWishlists.sort(
-        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-      );
-    }
-    setWishlists(sortedWishlists);
-  };
+  console.log("Wishlists:", wishlists);
 
-  const handleFilterChange = (key) => {
-    setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
+  // const handleSortChange = (value) => {
+  //   setSortBy(value);
+  //   const sortedWishlists = [...wishlists];
+  //   if (value === "asc") {
+  //     sortedWishlists.sort(
+  //       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  //     );
+  //   } else if (value === "desc") {
+  //     sortedWishlists.sort(
+  //       (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+  //     );
+  //   }
+  //   setWishlists(sortedWishlists);
+  // };
+
+  // const handleFilterChange = (key) => {
+  //   setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
+  // };
 
   // console.log("Wishlists:", wishlists);
 
@@ -166,43 +181,43 @@ const WishListPage = () => {
   //     }
   //   } 
 
-  const filteredWishlists = wishlists.filter((wishlist) => {
-    const propertyTypes = wishlist.properties.map((prop) => prop.type);
-    if (filters.flatApartment && !propertyTypes.includes("Flat / Apartment"))
-      return false;
-    if (filters.houseVilla && !propertyTypes.includes("House / Villa"))
-      return false;
-    if (filters.hotels && !propertyTypes.includes("Hotels")) return false;
-    if (filters.warehouse && !propertyTypes.includes("Warehouse")) return false;
-    if (
-      filters.retailProperties &&
-      !propertyTypes.includes("Retail Properties")
-    )
-      return false;
-    if (
-      filters.industrialProperties &&
-      !propertyTypes.includes("Industrial Properties")
-    )
-      return false;
-    if (
-      filters.coworkingOffices &&
-      !propertyTypes.includes("Co-working Offices")
-    )
-      return false;
-    if (filters.pgCoLiving && !propertyTypes.includes("PG / Co-Living"))
-      return false;
-    if (filters.farmHouse && !propertyTypes.includes("Farm House"))
-      return false;
-    if (filters.vacationHomes && !propertyTypes.includes("Vacation Homes"))
-      return false;
-    if (filters.houseVilla2 && !propertyTypes.includes("House / Villa"))
-      return false;
-    return true;
-  });
+  // const filteredWishlists = wishlists.filter((wishlist) => {
+  //   const propertyTypes = wishlist.properties.map((prop) => prop.type);
+  //   if (filters.flatApartment && !propertyTypes.includes("Flat / Apartment"))
+  //     return false;
+  //   if (filters.houseVilla && !propertyTypes.includes("House / Villa"))
+  //     return false;
+  //   if (filters.hotels && !propertyTypes.includes("Hotels")) return false;
+  //   if (filters.warehouse && !propertyTypes.includes("Warehouse")) return false;
+  //   if (
+  //     filters.retailProperties &&
+  //     !propertyTypes.includes("Retail Properties")
+  //   )
+  //     return false;
+  //   if (
+  //     filters.industrialProperties &&
+  //     !propertyTypes.includes("Industrial Properties")
+  //   )
+  //     return false;
+  //   if (
+  //     filters.coworkingOffices &&
+  //     !propertyTypes.includes("Co-working Offices")
+  //   )
+  //     return false;
+  //   if (filters.pgCoLiving && !propertyTypes.includes("PG / Co-Living"))
+  //     return false;
+  //   if (filters.farmHouse && !propertyTypes.includes("Farm House"))
+  //     return false;
+  //   if (filters.vacationHomes && !propertyTypes.includes("Vacation Homes"))
+  //     return false;
+  //   if (filters.houseVilla2 && !propertyTypes.includes("House / Villa"))
+  //     return false;
+  //   return true;
+  // });
 
-  const handleViewProperty = (propertyId) => {
-    router.push(`/property/${propertyId}`);
-  };
+  // const handleViewProperty = (propertyId) => {
+  //   router.push(`/property/${propertyId}`);
+  // };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -219,7 +234,8 @@ const WishListPage = () => {
             <SlidersHorizontal className="w-5 h-5" />
             <span className="text-lg font-medium">Filters</span>
           </Button>
-          <Select onValueChange={handleSortChange} value={sortBy}>
+          {/* <Select onValueChange={handleSortChange} value={sortBy}> */}
+          <Select value={sortBy}>
             <SelectTrigger className="w-48 border-gray-200">
               <SelectValue placeholder="Sort By" />
             </SelectTrigger>
@@ -296,23 +312,24 @@ const WishListPage = () => {
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading your wishlist...</p>
           </div>
-        ) : filteredWishlists.length === 0 ? (
+        ) : wishlists.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-xl shadow-sm">
             <Heart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-600 text-lg">No properties in your wishlist yet.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredWishlists.map((wishlist) =>
-              wishlist.properties.map((property) => (
+            {
+              wishlists.map((property) => (
+                console.log("Property:", property),
                 <div
                   key={property._id}
                   className="bg-white rounded-xl shadow-md overflow-hidden transform transition duration-300 hover:shadow-lg hover:-translate-y-1"
                 >
                   <div className="relative">
                     <img
-                      src={property.image || "/placeholder-image.jpg"}
-                      alt={property.title}
+                      src={property.images[0]?.url  || "/placeholder-image.jpg"}
+                      alt={property.name}
                       className="w-full h-56 object-cover"
                     />
                     <Button
@@ -363,7 +380,7 @@ const WishListPage = () => {
                   </div>
                 </div>
               ))
-            )}
+            }
           </div>
         )}
       </div>
