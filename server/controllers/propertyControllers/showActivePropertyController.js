@@ -2,6 +2,7 @@ const User = require("../../modals/Users");
 
 exports.getActiveProperties = async (req, res) => {
   const  mobile  = req.user.mobile;
+  console.log(mobile);
   if (!mobile) {
     return res.status(400).json({ error: "Mobile number is required." });
   }
@@ -12,6 +13,7 @@ exports.getActiveProperties = async (req, res) => {
         populate: { path: "reviews" },
       })
       .lean();
+      console.log(user);
 
     if (!user) {
       return res.status(404).json({ error: "User not found." });

@@ -35,6 +35,11 @@ const getFilteredProperty = require("../controllers/propertyControllers/getFilte
 
 const router = express.Router();
 
+
+
+
+//seller
+router.get("/alluser-properties", getActiveProperties);
 router.post(
   "/add",
   upload.fields([
@@ -44,7 +49,6 @@ router.post(
   uploadToS3,
   addProperty
 );
-
 router.patch(
   "/:propertyId",
   upload.fields([
@@ -54,9 +58,10 @@ router.patch(
   uploadToS3,
   updateProperty
 );
-
-router.get("/alluser-properties", getActiveProperties);
 router.post("/deleteProperty", submitFeedbackAndDeleteProperty);
+
+
+//buyer
 router.get("/availableProperty", getAvailableProperties);
 router.get("/availableFilteredProperty", getFilteredProperty);
 router.post("/add-review", postReview);
