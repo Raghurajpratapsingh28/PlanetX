@@ -33,9 +33,14 @@ export const PropertyUpload = ({
   // Function to handle the form submission
   function onSubmit(data) {
     try {
-      setFiles((prev) => ({
-        ...data, // Merge new data with previous state
-      }));
+      // setFiles((prev) => ({
+      //   ...data, // Merge new data with previous state
+      // }));
+
+      setFiles({
+        images: data.images,
+        video: data.video[0],
+      });
 
       toast({
         title: "Success",
@@ -57,7 +62,7 @@ export const PropertyUpload = ({
     if (files?.video?.length || files?.images?.length) {
       console.log("Updated Files State:", files);
       // Perform actions here, like moving to the next step
-      console.log(files);
+      // console.log(files);
       setCurrentStep(currentStep + 1);
     }
   }, [files]); // Runs whenever `files` changes

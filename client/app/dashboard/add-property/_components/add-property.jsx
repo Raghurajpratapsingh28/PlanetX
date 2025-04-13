@@ -97,8 +97,6 @@ export function AddPropertyForm() {
       console.log(pair[0], pair[1]);
     }
 
-    console.log(formData);
-  
     try {
       const response = await axios.post(
         `${BACKEND_URL}/properties/add`,

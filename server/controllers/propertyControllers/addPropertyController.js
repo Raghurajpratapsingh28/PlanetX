@@ -47,6 +47,7 @@ exports.addProperty = async (req, res) => {
 
     let video = null;
     if (req.files?.video) {
+      console.log("video", req.files.video);
       const videoFile = req.files.video[0];
       const fileName = `${Date.now()}-${videoFile.originalname}`;
       const uploadParams = {

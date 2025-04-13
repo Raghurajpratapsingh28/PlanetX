@@ -23,6 +23,7 @@ const uploadToS3 = async (req, res, next) => {
         const result = await s3.send(new PutObjectCommand(uploadParams));
 
         file.url = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+        console.log(file.url);
       }
     }
     
