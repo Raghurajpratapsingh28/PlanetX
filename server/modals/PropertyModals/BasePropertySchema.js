@@ -61,6 +61,10 @@ const basePropertySchema = new Schema(
     reviews: [{ type: Schema.Types.ObjectId, ref: "Review" }],
     pricing:[{type:Number }],
     description: { type: String, required: false },
+    builtUpArea: {
+      size: { type: Number, required: false },
+      unit: { type: String, required: false, enum: ["sq ft"] },
+    },
    
    
     

@@ -23,7 +23,7 @@ exports.getAvailableProperties = async (req, res) => {
         path: "reviews",
         populate: { path: "user", select: "name email" },
       })
-      .select("name user pricing description role propertyType location area propertyStatus category images reviews")
+      // .select("name user pricing description role propertyType location builtUpArea area propertyStatus category images reviews")
       .lean();
 
 
