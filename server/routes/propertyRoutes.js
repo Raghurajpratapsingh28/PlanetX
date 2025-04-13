@@ -32,11 +32,11 @@ const {
   getNotifications,
 } = require("../controllers/userControllers/getNotificationController");
 const getFilteredProperty = require("../controllers/propertyControllers/getFilteredProperty");
+const {
+  getPropertyById,
+} = require("../controllers/propertyControllers/getPropertyById");
 
 const router = express.Router();
-
-
-
 
 //seller
 router.get("/alluser-properties", getActiveProperties);
@@ -60,7 +60,6 @@ router.patch(
 );
 router.post("/deleteProperty", submitFeedbackAndDeleteProperty);
 
-
 //buyer
 router.get("/availableProperty", getAvailableProperties);
 router.get("/availableFilteredProperty", getFilteredProperty);
@@ -70,5 +69,6 @@ router.delete("/delete-review/:reviewId", deleteReview);
 router.get("/nearby-properties", getNearbyProperties);
 router.get("/category-properties", getPropertiesByCategory);
 router.get("/notification/:userId", getNotifications);
+router.get("/getProperty/:propertyId", getPropertyById);
 
 module.exports = router;

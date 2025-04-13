@@ -4,6 +4,7 @@ const Feedback = require("../../modals/Feedback");
 
 exports.submitFeedbackAndDeleteProperty = async (req, res) => {
   const { propertyId, userId, feedback } = req.body;
+  console.log(req.body);
 
   if (!propertyId || !userId || !feedback) {
     return res.status(400).json({

@@ -65,6 +65,9 @@ const basePropertySchema = new Schema(
       size: { type: Number, required: false },
       unit: { type: String, required: false, enum: ["sq ft"] },
     },
+    
+
+    
    
    
     

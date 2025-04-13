@@ -1,0 +1,1939 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import Image from "next/image"
+import Link from "next/link"
+import {
+  ChevronLeft,
+  ChevronRight,
+  MapPin,
+  Star,
+  MoreVertical,
+  Phone,
+  PhoneIcon as WhatsApp,
+  X,
+  Heart,
+  Share2,
+  Home,
+  Layers,
+  SquareIcon as SquareFootage,
+  Tag,
+  Clock,
+  Send,
+} from "lucide-react"
+import axios from "axios"
+import BACKEND_URL from "@/lib/BACKEND_URL"
+
+export default function PropertyDetails({ property }) {
+  const [activeTab, setActiveTab] = useState("about")
+  const [showNotify, setShowNotify] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [userRating, setUserRating] = useState(0)
+  const [hoverRating, setHoverRating] = useState(0)
+  const [reviewText, setReviewText] = useState("")
+
+  // Mock data - in a real app, this would come from an API call
+  const mockProperty = {
+    id: "HV159753",
+    title: "4 BHK Flat",
+    location: "A-404, Hardik Society, in Paharganj, Delhi 110024",
+    price: "₹17.5 Lac",
+    pricePerSqft: "₹3,500 / sqft",
+    isNegotiable: true,
+    tags: ["Flat / Apartment", "Ready to Move", "Furnished"],
+    features: [
+      { icon: "layout", label: "4 BHK & 5 Baths" },
+      { icon: "square", label: "3010 sq.ft. carpet area (610 sq. m.)" },
+      { icon: "layers", label: "10 out of 5 floors" },
+      { icon: "tag", label: "₹ 3000 price per sq.ft." },
+      { icon: "home", label: "2+ Year Old Property" },
+    ],
+    owner: {
+      name: "Belly Forster",
+      image: "/placeholder.svg?height=80&width=80",
+      rating: 4.0,
+      reviews: 10,
+      phone: "+91 78945 12305",
+    },
+    description:
+      "A Residential house is available for rent at Madhavaram Colony, Delhi. It is located in a very good area. The plot is measures 170.29 sq. ft. and priced 85 thousand. / negotiable/ will disclose after contact",
+    images: [
+      { src: "/placeholder.svg?height=400&width=600", alt: "Bedroom", label: "Bedroom" },
+      { src: "/placeholder.svg?height=400&width=600", alt: "Bathroom", label: "Bathroom" },
+      { src: "/placeholder.svg?height=400&width=600", alt: "Kitchen", label: "Kitchen" },
+      { src: "/placeholder.svg?height=400&width=600", alt: "Bedroom", label: "Bedroom" },
+      { src: "/placeholder.svg?height=400&width=600", alt: "Balcony", label: "Balcony" },
+      { src: "/placeholder.svg?height=400&width=600", alt: "Bedroom", label: "Bedroom" },
+      { src: "/placeholder.svg?height=400&width=600", alt: "Bedroom", label: "Bedroom" },
+    ],
+    amenities: [
+      { icon: "user", label: "Maintenance Staff" },
+      { icon: "compass", label: "Vaastu Compliant" },
+      { icon: "shield", label: "Security / Fire Alarm" },
+      { icon: "parking", label: "Visitor Parking" },
+      { icon: "elevator", label: "Lifts" },
+      { icon: "flame", label: "Gas Line" },
+      { icon: "wifi", label: "Wi-Fi/Cable" },
+    ],
+    otherFeatures: [
+      { icon: "door", label: "Separate entry for servant room" },
+      { icon: "x-circle", label: "No open drainage around" },
+      { icon: "paw", label: "Pet-Friendly" },
+      { icon: "wheelchair", label: "Wheelchair friendly" },
+      { icon: "droplet", label: "Rain Water Harvesting" },
+      { icon: "corner-up-right", label: "Corner Property" },
+    ],
+    societyFeatures: [
+      { icon: "swimming-pool", label: "Swimming Pool" },
+      { icon: "shield", label: "24/7 Security" },
+      { icon: "dumbbell", label: "Gym/Fitness Center" },
+      { icon: "shopping-bag", label: "Shopping Centre" },
+      { icon: "home", label: "Clubhouse" },
+      { icon: "play", label: "Children's Play Area" },
+      { icon: "running", label: "Sports Facilities" },
+      { icon: "walk", label: "Jogging/Walking Tracks" },
+      { icon: "tree", label: "Garden/Parks" },
+      { icon: "users", label: "Community Halls" },
+      { icon: "film", label: "Cinema Room" },
+      { icon: "book", label: "Library/Reading Room" },
+    ],
+    furnishing: [
+      { icon: "fan", label: "2 Fans" },
+      { icon: "lightbulb", label: "5 Lights" },
+      { icon: "thermometer", label: "4 AC" },
+      { icon: "tv", label: "2 TV" },
+      { icon: "bed", label: "4 Beds" },
+      { icon: "archive", label: "4 Wardrobe" },
+      { icon: "droplet", label: "5 Geyser" },
+      { icon: "chair", label: "12 Chairs" },
+      { icon: "table", label: "1 Dining Table" },
+      { icon: "sofa", label: "1 Sofa" },
+      { icon: "cooking-pot", label: "1 Stove" },
+      { icon: "cabinet", label: "Kitchen Cabinets" },
+      { icon: "flame", label: "1 Chimney" },
+      { icon: "coffee", label: "1 Coffee Table" },
+      { icon: "fan", label: "4 Exhaust Fan" },
+      { icon: "curtains", label: "15 Curtains/Blinds" },
+      { icon: "lamp", label: "4 Floor Lamp" },
+      { icon: "refrigerator", label: "1 Refrigerator" },
+      { icon: "microwave", label: "1 Microwave" },
+      { icon: "dishwasher", label: "1 Dishwasher" },
+      { icon: "droplet", label: "1 Water Purifier" },
+    ],
+    propertyDetails: [
+      { label: "Bedrooms", value: "4" },
+      { label: "Bathrooms", value: "5" },
+      { label: "Balconies", value: "2" },
+      { label: "Total no. of Floor", value: "10" },
+      { label: "Property on Floor", value: "5" },
+      { label: "Availability Status", value: "Under Construction" },
+      { label: "Available From", value: "Within 15 Day" },
+      { label: "Age of Property", value: "0-1 years old" },
+      { label: "Furnishing Status", value: "Furnished" },
+      { label: "Facing", value: "West" },
+      { label: "Power backup", value: "Full" },
+      { label: "Wheelchair Friendly", value: "Yes" },
+      { label: "Water Source", value: "Municipal corporation, 24*7 Water" },
+      { label: "Width of facing road", value: "25 ft." },
+      { label: "Wheelchair Friendly", value: "10 ft." },
+      { label: "Wheelchair Friendly", value: "Yes" },
+      { label: "Type of flooring", value: "Marble" },
+      { label: "Property ID", value: "HV159753" },
+    ],
+    areaDetails: [
+      { label: "Carpet Area", value: "3010 Sq.ft.", subValue: "279.63 Sq.m." },
+      { label: "Built-up Area", value: "4056 Sq.ft.", subValue: "376.81 Sq.m." },
+      { label: "Super Built-up Area", value: "4091 Sq.ft.", subValue: "380.06 Sq.m." },
+    ],
+    parking: [
+      { label: "Covered Parking", value: "2" },
+      { label: "Open Parking", value: "5" },
+    ],
+    nearbyPlaces: [
+      { icon: "train", label: "Azad Metro Station" },
+      { icon: "temple", label: "Shiv Temple" },
+      { icon: "hospital", label: "Shree Ram Ayurvedic Hospital" },
+      { icon: "hospital", label: "Sainath Hospital" },
+      { icon: "temple", label: "Shiv Temple" },
+    ],
+    reviews: [
+      {
+        user: { name: "Below Average", image: "/placeholder.svg?height=40&width=40", rating: 4.0 },
+        comment:
+          "Your feedback matters! Share your experience with our real estate app and help others find their dream home effortlessly.",
+        time: "3 min ago",
+      },
+      {
+        user: { name: "Ben Forster", image: "/placeholder.svg?height=40&width=40", rating: 3.0 },
+        comment:
+          "Your feedback matters! Share your experience with our real estate app and help others find their dream home effortlessly.",
+        time: "1 day ago",
+      },
+      {
+        user: { name: "Below Average", image: "/placeholder.svg?height=40&width=40", rating: 4.0 },
+        comment:
+          "Your feedback matters! Share your experience with our real estate app and help others find their dream home effortlessly.",
+        time: "6 days ago",
+      },
+    ],
+    ratingDistribution: {
+      excellent: 60,
+      good: 20,
+      average: 10,
+      belowAverage: 5,
+      poor: 5,
+    },
+  }
+
+    
+  const data = property || mockProperty
+
+  const nextImage = () => {
+    setCurrentImageIndex((prevIndex) => (prevIndex === data.images.length - 1 ? 0 : prevIndex + 1))
+  }
+
+  const prevImage = () => {
+    setCurrentImageIndex((prevIndex) => (prevIndex === 0 ? data.images.length - 1 : prevIndex - 1))
+  }
+
+  const renderStars = (rating) => {
+    return Array(5)
+      .fill(0)
+      .map((_, i) => (
+        <Star
+          key={i}
+          className={`h-4 w-4 ${i < Math.floor(rating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
+        />
+      ))
+  }
+
+  const handleRatingClick = (rating) => {
+    setUserRating(rating)
+  }
+
+  const handleRatingHover = (rating) => {
+    setHoverRating(rating)
+  }
+
+  const handleSubmitReview = () => {
+    // In a real app, you would send this to your API
+    console.log("Submitting review:", { rating: userRating, text: reviewText })
+    // Reset form
+    setUserRating(0)
+    setReviewText("")
+    // Show success message or update UI
+    alert("Review submitted successfully!")
+  }
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "about":
+        return (
+          <div className="py-4">
+            <h3 className="font-semibold text-lg mb-3">Description</h3>
+            <p className="text-sm text-gray-600 mb-8 leading-relaxed">{data.description}</p>
+
+            <h3 className="font-semibold text-lg mb-3">12 Places Nearby</h3>
+            <div className="flex flex-wrap gap-2 mb-8">
+              {data.nearbyPlaces.map((place, index) => (
+                <div key={index} className="flex items-center bg-gray-100 rounded-full px-3 py-1.5 text-xs">
+                  <span className="mr-1.5 bg-purple-100 rounded-full p-1 flex items-center justify-center">
+                    <MapPin className="h-3 w-3 text-purple-600" />
+                  </span>
+                  {place.label}
+                </div>
+              ))}
+            </div>
+
+            <h3 className="font-semibold text-lg mb-3">Property Details</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              {data.propertyDetails.map((detail, index) => (
+                <div key={index} className="flex justify-between border-b pb-2">
+                  <span className="text-sm text-gray-600">{detail.label}</span>
+                  <span className="text-sm font-medium">{detail.value}</span>
+                </div>
+              ))}
+            </div>
+
+            <h3 className="font-semibold text-lg mt-6 mb-3">Area of property</h3>
+            <div className="space-y-4 mb-8">
+              {data.areaDetails.map((area, index) => (
+                <div key={index} className="flex justify-between bg-gray-50 p-3 rounded-lg">
+                  <span className="text-sm text-gray-600">{area.label}</span>
+                  <div className="text-right">
+                    <div className="text-sm font-medium">{area.value}</div>
+                    <div className="text-xs text-gray-500">{area.subValue}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <h3 className="font-semibold text-lg mt-6 mb-3">Parking</h3>
+            <div className="grid grid-cols-2 gap-4">
+              {data.parking.map((item, index) => (
+                <div key={index} className="flex justify-between bg-gray-50 p-3 rounded-lg">
+                  <span className="text-sm text-gray-600">{item.label}</span>
+                  <span className="text-sm font-medium">{item.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      case "amenities":
+        return (
+          <div className="py-4">
+            <h3 className="font-semibold text-lg mb-4">Amenities</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              {data.amenities.map((amenity, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="text-purple-500 bg-purple-50 p-2 rounded-full">
+                    <MapPin className="h-5 w-5" />
+                  </div>
+                  <span className="text-sm font-medium">{amenity.label}</span>
+                </div>
+              ))}
+            </div>
+
+            <h3 className="font-semibold text-lg mt-6 mb-4">Other Features</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              {data.otherFeatures.map((feature, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="text-blue-500 bg-blue-50 p-2 rounded-full">
+                    <MapPin className="h-5 w-5" />
+                  </div>
+                  <span className="text-sm font-medium">{feature.label}</span>
+                </div>
+              ))}
+            </div>
+
+            <h3 className="font-semibold text-lg mt-6 mb-4">Society/Building Features</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {data.societyFeatures.map((feature, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="text-green-500 bg-green-50 p-2 rounded-full">
+                    <MapPin className="h-5 w-5" />
+                  </div>
+                  <span className="text-sm font-medium">{feature.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      case "furnishing":
+        return (
+          <div className="py-4">
+            <h3 className="font-semibold text-lg mb-4">Furnishing Details</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {data.furnishing.map((item, index) => (
+                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="text-amber-500 bg-amber-50 p-2 rounded-full">
+                    <MapPin className="h-5 w-5" />
+                  </div>
+                  <span className="text-sm font-medium">{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      case "gallery":
+        return (
+          <div className="py-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {data.images.map((image, index) => (
+                <div key={index} className="relative rounded-lg overflow-hidden group shadow-sm">
+                  <Image
+                    src={image.src || "/placeholder.svg"}
+                    alt={image.alt}
+                    width={200}
+                    height={150}
+                    className="w-full h-32 object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-2">
+                    <div className="text-white text-xs font-medium">{image.label}</div>
+                    <button className="bg-white rounded-full p-1">
+                      <MoreVertical className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      case "review":
+        return (
+          <div className="py-4">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 bg-gray-50 p-6 rounded-xl">
+              <div className="text-center">
+                <div className="text-5xl font-bold text-purple-600">4.0</div>
+                <div className="flex justify-center my-2">{renderStars(4)}</div>
+                <div className="text-sm text-gray-500">Based on 10 reviews</div>
+              </div>
+
+              <div className="flex-1 space-y-2 w-full max-w-md">
+                <div className="flex items-center gap-2">
+                  <span className="w-24 text-sm font-medium">Excellent</span>
+                  <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="bg-green-500 h-full"
+                      style={{ width: `${data.ratingDistribution.excellent}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-xs text-gray-500 w-8 text-right">{data.ratingDistribution.excellent}%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-24 text-sm font-medium">Good</span>
+                  <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="bg-lime-500 h-full" style={{ width: `${data.ratingDistribution.good}%` }}></div>
+                  </div>
+                  <span className="text-xs text-gray-500 w-8 text-right">{data.ratingDistribution.good}%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-24 text-sm font-medium">Average</span>
+                  <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="bg-yellow-500 h-full"
+                      style={{ width: `${data.ratingDistribution.average}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-xs text-gray-500 w-8 text-right">{data.ratingDistribution.average}%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-24 text-sm font-medium">Below Average</span>
+                  <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="bg-orange-500 h-full"
+                      style={{ width: `${data.ratingDistribution.belowAverage}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-xs text-gray-500 w-8 text-right">{data.ratingDistribution.belowAverage}%</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-24 text-sm font-medium">Poor</span>
+                  <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="bg-red-500 h-full" style={{ width: `${data.ratingDistribution.poor}%` }}></div>
+                  </div>
+                  <span className="text-xs text-gray-500 w-8 text-right">{data.ratingDistribution.poor}%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Review Submission Form */}
+            <div className="bg-white border rounded-xl p-6 mb-8 shadow-sm">
+              <h3 className="font-semibold text-lg mb-4">Write a Review</h3>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Your Rating</label>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => handleRatingClick(star)}
+                      onMouseEnter={() => handleRatingHover(star)}
+                      onMouseLeave={() => handleRatingHover(0)}
+                      className="focus:outline-none"
+                    >
+                      <Star
+                        className={`h-8 w-8 ${
+                          star <= (hoverRating || userRating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"
+                        } transition-colors`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Your Review</label>
+                <textarea
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  placeholder="Share your experience with this property..."
+                  className="w-full border rounded-lg py-3 px-4 h-32 resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                ></textarea>
+              </div>
+
+              <button
+                onClick={handleSubmitReview}
+                disabled={!userRating || !reviewText.trim()}
+                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium ${
+                  userRating && reviewText.trim()
+                    ? "bg-purple-600 text-white hover:bg-purple-700"
+                    : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                } transition-colors`}
+              >
+                <Send className="h-4 w-4" />
+                Submit Review
+              </button>
+            </div>
+
+            <h3 className="font-semibold text-lg mb-4">Recent Reviews</h3>
+            <div className="space-y-6">
+              {data.reviews.map((review, index) => (
+                <div key={index} className="border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Image
+                      src={review.user.image || "/placeholder.svg"}
+                      alt={review.user.name}
+                      width={48}
+                      height={48}
+                      className="rounded-full border-2 border-white shadow-sm"
+                    />
+                    <div>
+                      <div className="font-medium">{review.user.name}</div>
+                      <div className="flex items-center">
+                        {renderStars(review.user.rating)}
+                        <span className="ml-1 text-sm font-medium">{review.user.rating}</span>
+                      </div>
+                    </div>
+                    <div className="ml-auto text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                      {review.time}
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-700 leading-relaxed mb-3">{review.comment}</p>
+                  <div className="flex gap-4 mt-2">
+                    <button className="text-xs text-purple-600 hover:text-purple-800 font-medium">Reply</button>
+                    <button className="text-xs text-red-500 hover:text-red-700 font-medium">Delete</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      default:
+        return null
+    }
+  }
+
+  const FeatureIcon = ({ type }) => {
+    switch (type) {
+      case "layout":
+        return <Home className="h-5 w-5" />
+      case "square":
+        return <SquareFootage className="h-5 w-5" />
+      case "layers":
+        return <Layers className="h-5 w-5" />
+      case "tag":
+        return <Tag className="h-5 w-5" />
+      case "home":
+        return <Clock className="h-5 w-5" />
+      default:
+        return <Home className="h-5 w-5" />
+    }
+  }
+
+  return (
+    <div className="bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="bg-white shadow-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
+          <h1 className="text-xl font-semibold text-gray-800">Property Details</h1>
+          <div className="flex items-center text-sm">
+            <span className="text-gray-500">Property (Residential)</span>
+            <span className="mx-2 text-gray-300">•</span>
+            <span className="text-gray-500">Sell</span>
+            <span className="mx-2 text-gray-300">•</span>
+            <Link href="#" className="text-purple-600 font-medium hover:text-purple-800">
+              View
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Property Images and Details */}
+          <div className="lg:col-span-2">
+            {/* Property Image Carousel */}
+            <div className="relative rounded-xl overflow-hidden mb-6 shadow-md bg-white">
+              <div className="relative aspect-video">
+                <Image
+                  src={data.images[currentImageIndex].src || "/placeholder.svg"}
+                  alt={data.images[currentImageIndex].alt}
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                <button
+                  onClick={prevImage}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={nextImage}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+                <div className="absolute bottom-4 left-4 bg-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-md">
+                  {data.images[currentImageIndex].label}
+                </div>
+                <div className="absolute top-4 right-4 flex gap-2">
+                  <button className="bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors">
+                    <Heart className="h-5 w-5 text-red-500" />
+                  </button>
+                  <button className="bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors">
+                    <Share2 className="h-5 w-5 text-blue-500" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Property Title and Location */}
+            <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800">{data.title}</h2>
+                  <div className="flex items-center text-gray-600 mt-1">
+                    <MapPin className="h-4 w-4 mr-1.5 text-purple-500" />
+                    <span className="text-sm">{data.location}</span>
+                  </div>
+                </div>
+                <button className="text-gray-500 hover:bg-gray-100 p-2 rounded-full transition-colors">
+                  <MoreVertical className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Price */}
+              <div className="flex justify-between items-center mt-4 pb-4 border-b">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl font-bold text-purple-600">{data.price}</span>
+                    <span className="text-sm text-gray-600">{data.pricePerSqft}</span>
+                  </div>
+                </div>
+                <div className="text-sm font-medium px-3 py-1 bg-green-100 text-green-800 rounded-full">
+                  {data.isNegotiable && "Negotiable"}
+                </div>
+              </div>
+
+              {/* Tags */}
+              <div className="flex flex-wrap gap-2 mt-4">
+                {data.tags.map((tag, index) => (
+                  <span key={index} className="bg-gray-100 text-gray-800 text-xs px-3 py-1.5 rounded-full font-medium">
+                    {tag}
+                  </span>
+                ))}
+                <button className="ml-auto bg-purple-100 text-purple-800 text-xs px-3 py-1.5 rounded-full flex items-center font-medium">
+                  Play Video <ChevronRight className="h-3 w-3 ml-1" />
+                </button>
+              </div>
+            </div>
+
+            {/* Features */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+              {data.features.map((feature, index) => (
+                <div
+                  key={index}
+                  className="flex flex-col items-center text-center p-4 border rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div className="text-purple-500 bg-purple-50 p-2.5 rounded-full mb-2">
+                    <FeatureIcon type={feature.icon} />
+                  </div>
+                  <span className="text-xs text-gray-700 font-medium">{feature.label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Tabs */}
+            <div className="bg-white rounded-t-xl shadow-sm">
+              <div className="flex overflow-x-auto scrollbar-hide">
+                {["about", "amenities", "furnishing", "gallery", "review"].map((tab) => (
+                  <button
+                    key={tab}
+                    className={`px-6 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                      activeTab === tab
+                        ? "text-purple-600 border-purple-600"
+                        : "text-gray-600 border-transparent hover:text-purple-500 hover:border-purple-200"
+                    }`}
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Tab Content */}
+            <div className="bg-white rounded-b-xl shadow-sm p-6 mb-6">{renderTabContent()}</div>
+          </div>
+
+          {/* Right Column - Owner Info */}
+          <div>
+            <div className="bg-white border rounded-xl p-6 mb-6 shadow-sm sticky top-24">
+              <h3 className="text-lg font-semibold mb-4 text-gray-800">Property Owner</h3>
+              <div className="flex flex-col items-center">
+                <Image
+                  src={data.owner.image || "/placeholder.svg"}
+                  alt={data.owner.name}
+                  width={100}
+                  height={100}
+                  className="rounded-full border-4 border-white shadow-md mb-3"
+                />
+                <h4 className="font-semibold text-lg">{data.owner.name}</h4>
+                <div className="flex items-center my-2">
+                  {renderStars(data.owner.rating)}
+                  <span className="ml-1 font-medium">{data.owner.rating}</span>
+                  <span className="ml-1 text-xs text-gray-500">{data.owner.reviews} reviews</span>
+                </div>
+                <div className="w-full mt-4 space-y-3">
+                  <a
+                    href={`https://wa.me/${data.owner.phone.replace(/\s+/g, "")}`}
+                    className="flex items-center justify-center gap-2 w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-medium"
+                  >
+                    <WhatsApp className="h-5 w-5" />
+                    <span>{data.owner.phone}</span>
+                  </a>
+                  <a
+                    href={`tel:${data.owner.phone.replace(/\s+/g, "")}`}
+                    className="flex items-center justify-center gap-2 w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                  >
+                    <Phone className="h-5 w-5" />
+                    <span>{data.owner.phone}</span>
+                  </a>
+                </div>
+                <div className="w-full mt-5 grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => setShowNotify(true)}
+                    className="border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                  >
+                    Notify
+                  </button>
+                  <button className="bg-purple-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
+                    View Profile
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Notify Modal */}
+      {showNotify && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-md mx-4 shadow-xl">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="font-semibold text-lg">Notify</h3>
+              <button
+                onClick={() => setShowNotify(false)}
+                className="text-gray-500 hover:bg-gray-100 p-1.5 rounded-full transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Select Reason</label>
+                <div className="relative">
+                  <select className="w-full border rounded-lg py-2.5 px-3 appearance-none pr-8 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <option>Change Photos</option>
+                    <option>Wrong Information</option>
+                    <option>Property Not Available</option>
+                    <option>Other</option>
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="h-4 w-4"
+                    >
+                      <path d="m6 9 6 6 6-6"></path>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">Notification</label>
+                <textarea
+                  placeholder="Enter Notification Text"
+                  className="w-full border rounded-lg py-2.5 px-3 h-32 resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                ></textarea>
+              </div>
+              <div className="grid grid-cols-2 gap-3 mt-6">
+                <button
+                  onClick={() => setShowNotify(false)}
+                  className="border border-gray-300 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Clear
+                </button>
+                <button className="bg-purple-600 text-white py-2.5 rounded-lg font-medium hover:bg-purple-700 transition-colors">
+                  Share Now
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// // This function gets called at build time
+// export async function getServerSideProps({ params }) {
+//   try {
+//     // In a real application, you would fetch the property data from an API
+//     // const res = await fetch(`https://your-api.com/properties/${params.propertyId}`);
+//     // const property = await res.json();
+
+//     // For now, we'll return null and use the mock data in the component
+//     return {
+//       props: {
+//         property: null,
+//         propertyId: params.propertyId,
+//       },
+//     }
+//   } catch (error) {
+//     console.error("Error fetching property:", error)
+//     return {
+//       props: {
+//         property: null,
+//         propertyId: params.propertyId,
+//       },
+//     }
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import Image from "next/image";
+// import Link from "next/link";
+// import {
+//   ChevronLeft,
+//   ChevronRight,
+//   MapPin,
+//   Star,
+//   MoreVertical,
+//   Phone,
+//   PhoneIcon as WhatsApp,
+//   X,
+//   Heart,
+//   Share2,
+//   Home,
+//   Layers,
+//   SquareIcon as SquareFootage,
+//   Tag,
+//   Clock,
+//   Send,
+// } from "lucide-react";
+// import axios from "axios";
+// import BACKEND_URL from "@/lib/BACKEND_URL";
+
+// export default function PropertyDetails({ params }) {
+//   const [property, setProperty] = useState(null);
+//   const [activeTab, setActiveTab] = useState("about");
+//   const [showNotify, setShowNotify] = useState(false);
+//   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+//   const [userRating, setUserRating] = useState(0);
+//   const [hoverRating, setHoverRating] = useState(0);
+//   const [reviewText, setReviewText] = useState("");
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState(null);
+
+//   // Fetch property data
+//   useEffect(() => {
+//     const fetchProperty = async () => {
+//       const token = localStorage.getItem("accessToken")?.replace(/^"|"$/g, "");
+//       if (!token) {
+//         setError("Please log in to view property details.");
+//         setLoading(false);
+//         return;
+//       }
+
+//       try {
+//         setLoading(true);
+//         const response = await axios.get(
+//           `${BACKEND_URL}/properties/getProperty/${params.propertyId}`,
+//           {
+//             headers: { Authorization: token },
+//           }
+//         );
+//         const fetchedProperty = response.data.property;
+//         // Transform the data to match the frontend structure
+//         const transformedProperty = transformPropertyData(fetchedProperty);
+//         setProperty(transformedProperty);
+//       } catch (err) {
+//         setError("Failed to fetch property details: " + err.message);
+//         console.error("Error fetching property:", err);
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchProperty();
+//   }, [params.propertyId]);
+
+//   // Transform backend data to match frontend structure
+//   const transformPropertyData = (data) => {
+//     // Convert amenities object to array
+//     const amenitiesMap = {
+//       maintenanceStaff: "Maintenance Staff",
+//       vastuCompliant: "Vaastu Compliant",
+//       securityFireAlarm: "Security / Fire Alarm",
+//       visitorParking: "Visitor Parking",
+//       gasLine: "Gas Line",
+//       wifiCable: "Wi-Fi/Cable",
+//     };
+//     const amenities = Object.entries(data.amenities || {}).reduce(
+//       (acc, [key, value]) => {
+//         if (value && amenitiesMap[key]) {
+//           acc.push({ icon: "user", label: amenitiesMap[key] });
+//         }
+//         return acc;
+//       },
+//       []
+//     );
+
+//     // Convert otherFeatures object to array
+//     const otherFeaturesMap = {
+//       separateEntryForServantRoom: "Separate entry for servant room",
+//       noOpenDrainageAround: "No open drainage around",
+//       petFriendly: "Pet-Friendly",
+//       wheelchairFriendly: "Wheelchair friendly",
+//       rainWaterHarvesting: "Rain Water Harvesting",
+//       cornerProperty: "Corner Property",
+//     };
+//     const otherFeatures = Object.entries(data.otherFeatures || {}).reduce(
+//       (acc, [key, value]) => {
+//         if (value && otherFeaturesMap[key]) {
+//           acc.push({ icon: "door", label: otherFeaturesMap[key] });
+//         }
+//         return acc;
+//       },
+//       []
+//     );
+
+//     // Convert societyBuildingFeatures object to array
+//     const societyFeaturesMap = {
+//       swimmingPool: "Swimming Pool",
+//       security24x7: "24/7 Security",
+//       gymFitnessCentre: "Gym/Fitness Center",
+//       shoppingCenter: "Shopping Centre",
+//       clubHouse: "Clubhouse",
+//       childrensPlayArea: "Children's Play Area",
+//       sportsFacilities: "Sports Facilities",
+//       joggingWalkingTracks: "Jogging/Walking Tracks",
+//       gardenParks: "Garden/Parks",
+//       communityHalls: "Community Halls",
+//       cinemaRoom: "Cinema Room",
+//       libraryReadingRoom: "Library/Reading Room",
+//     };
+//     const societyFeatures = Object.entries(data.societyBuildingFeatures || {}).reduce(
+//       (acc, [key, value]) => {
+//         if (value && societyFeaturesMap[key]) {
+//           acc.push({ icon: "swimming-pool", label: societyFeaturesMap[key] });
+//         }
+//         return acc;
+//       },
+//       []
+//     );
+
+//     // Convert furnishingDetails object to array
+//     const furnishingMap = {
+//       fans: "Fans",
+//       lights: "Lights",
+//       tv: "TV",
+//       beds: "Beds",
+//       ac: "AC",
+//       wardrobes: "Wardrobes",
+//       exhaustFans: "Exhaust Fans",
+//       curtains: "Curtains/Blinds",
+//       floorLamps: "Floor Lamps",
+//       diningTable: "Dining Table",
+//       sofa: "Sofa",
+//       stove: "Stove",
+//       kitchenCabinets: "Kitchen Cabinets",
+//       chimney: "Chimney",
+//       coffeeTable: "Coffee Table",
+//       refrigerator: "Refrigerator",
+//       microwave: "Microwave",
+//       dishwasher: "Dishwasher",
+//       waterPurifier: "Water Purifier",
+//       washingMachine: "Washing Machine",
+//     };
+//     const furnishing = Object.entries(data.furnishingDetails || {}).reduce(
+//       (acc, [key, value]) => {
+//         if (
+//           (typeof value === "number" && value > 0) ||
+//           (typeof value === "boolean" && value)
+//         ) {
+//           acc.push({
+//             icon: "fan",
+//             label: `${typeof value === "number" ? value : 1} ${furnishingMap[key]}`,
+//           });
+//         }
+//         return acc;
+//       },
+//       []
+//     );
+
+//     // Convert nearbyPlaces object to array
+//     const nearbyPlacesMap = {
+//       hospital: "Hospital",
+//       school: "School",
+//       metro: "Metro Station",
+//       mall: "Mall",
+//       market: "Market",
+//       railway: "Railway Station",
+//       airport: "Airport",
+//       highway: "Highway",
+//       busStation: "Bus Station",
+//     };
+//     const nearbyPlaces = Object.entries(data.nearbyPlaces || {}).reduce(
+//       (acc, [key, value]) => {
+//         if (value && nearbyPlacesMap[key]) {
+//           acc.push({ icon: "train", label: nearbyPlacesMap[key] });
+//         }
+//         return acc;
+//       },
+//       []
+//     );
+
+//     return {
+//       id: data._id,
+//       title: `${data.category || "Property"} in ${data.location?.locality || "Unknown"}`,
+//       location: [
+//         data.location?.houseNumber,
+//         data.location?.apartment,
+//         data.location?.subLocality,
+//         data.location?.locality,
+//         data.location?.city,
+//         data.location?.state,
+//       ]
+//         .filter(Boolean)
+//         .join(", "),
+//       price: data.pricing?.expectedPrice
+//         ? `₹${data.pricing.expectedPrice.toLocaleString("en-IN")}`
+//         : "Price on Request",
+//       pricePerSqft: data.pricing?.PricePerSqft
+//         ? `₹${data.pricing.PricePerSqft.toLocaleString("en-IN")} / sqft`
+//         : "N/A",
+//       isNegotiable: true,
+//       tags: [
+//         data.category || "Unknown",
+//         data.availabilityStatus === "Ready to Move" ? "Ready to Move" : data.availabilityStatus,
+//         data.furnishingStatus || "Unfurnished",
+//       ].filter(Boolean),
+//       features: [
+//         {
+//           icon: "layout",
+//           label: data.about
+//             ? `${data.about.bedrooms || 0} BHK & ${data.about.bathrooms || 0} Baths`
+//             : "N/A",
+//         },
+//         {
+//           icon: "square",
+//           label: data.propertyArea?.carpetArea
+//             ? `${data.propertyArea.carpetArea} sq.ft. carpet area`
+//             : "N/A",
+//         },
+//         {
+//           icon: "layers",
+//           label: data.propertyOnFloor
+//             ? `${data.propertyOnFloor} out of ${data.totalFloors || "N/A"} floors`
+//             : "N/A",
+//         },
+//         {
+//           icon: "tag",
+//           label: data.pricing?.PricePerSqft
+//             ? `₹${data.pricing.PricePerSqft.toLocaleString("en-IN")} price per sq.ft.`
+//             : "N/A",
+//         },
+//         {
+//           icon: "home",
+//           label: data.ageOfProperty
+//             ? `${data.ageOfProperty} Year Old Property`
+//             : "New Property",
+//         },
+//       ],
+//       owner: {
+//         name: data.user?.name || "Unknown Owner",
+//         image: "/placeholder.svg?height=80&width=80",
+//         rating: data.reviews?.length
+//           ? (
+//               data.reviews.reduce((sum, r) => sum + (r.rating || 0), 0) /
+//               data.reviews.length
+//             ).toFixed(1)
+//           : 0,
+//         reviews: data.reviews?.length || 0,
+//         phone: data.user?.mobile || "+91 00000 00000",
+//       },
+//       description: data.description || "No description available.",
+//       images: data.images?.map((img, index) => ({
+//         src: img.url || "/placeholder.svg?height=400&width=600",
+//         alt: img.name || `Image ${index + 1}`,
+//         label: img.name || `Image ${index + 1}`,
+//       })) || [],
+//       amenities,
+//       otherFeatures,
+//       societyFeatures,
+//       furnishing,
+//       propertyDetails: [
+//         { label: "Bedrooms", value: data.about?.bedrooms || "N/A" },
+//         { label: "Bathrooms", value: data.about?.bathrooms || "N/A" },
+//         { label: "Balconies", value: data.about?.balconies || "N/A" },
+//         { label: "Total no. of Floor", value: data.totalFloors || "N/A" },
+//         { label: "Property on Floor", value: data.propertyOnFloor || "N/A" },
+//         { label: "Availability Status", value: data.availabilityStatus || "N/A" },
+//         { label: "Available From", value: data.availableFrom ? new Date(data.availableFrom).toLocaleDateString() : "N/A" },
+//         { label: "Age of Property", value: data.ageOfProperty ? `${data.ageOfProperty} years` : "N/A" },
+//         { label: "Furnishing Status", value: data.furnishingStatus || "N/A" },
+//         { label: "Facing", value: data.facing || "N/A" },
+//         { label: "Power backup", value: data.powerBackup || "N/A" },
+//         { label: "Wheelchair Friendly", value: data.otherFeatures?.wheelchairFriendly ? "Yes" : "No" },
+//         { label: "Water Source", value: data.waterSource || "N/A" },
+//         { label: "Width of facing road", value: data.roadWidth || "N/A" },
+//         { label: "Type of flooring", value: data.flooring || "N/A" },
+//         { label: "Property ID", value: data._id },
+//       ],
+//       areaDetails: [
+//         {
+//           label: "Carpet Area",
+//           value: data.propertyArea?.carpetArea ? `${data.propertyArea.carpetArea} Sq.ft.` : "N/A",
+//           subValue: data.propertyArea?.carpetArea
+//             ? `${(data.propertyArea.carpetArea * 0.092903).toFixed(2)} Sq.m.`
+//             : "N/A",
+//         },
+//         {
+//           label: "Built-up Area",
+//           value: data.propertyArea?.carpetArea
+//             ? `${(data.propertyArea.carpetArea * 1.1).toFixed(0)} Sq.ft.`
+//             : "N/A",
+//           subValue: data.propertyArea?.carpetArea
+//             ? `${(data.propertyArea.carpetArea * 1.1 * 0.092903).toFixed(2)} Sq.m.`
+//             : "N/A",
+//         },
+//         {
+//           label: "Super Built-up Area",
+//           value: data.propertyArea?.carpetArea
+//             ? `${(data.propertyArea.carpetArea * 1.2).toFixed(0)} Sq.ft.`
+//             : "N/A",
+//           subValue: data.propertyArea?.carpetArea
+//             ? `${(data.propertyArea.carpetArea * 1.2 * 0.092903).toFixed(2)} Sq.m.`
+//             : "N/A",
+//         },
+//       ],
+//       parking: [
+//         { label: "Covered Parking", value: data.parking?.covered || "0" },
+//         { label: "Open Parking", value: data.parking?.open || "0" },
+//       ],
+//       nearbyPlaces,
+//       reviews: data.reviews?.map((review) => ({
+//         user: {
+//           name: review.user?.name || "Anonymous",
+//           image: "/placeholder.svg?height=40&width=40",
+//           rating: review.rating || 0,
+//         },
+//         comment: review.comment || "No comment provided.",
+//         time: review.createdAt
+//           ? new Date(review.createdAt).toLocaleString()
+//           : "Unknown time",
+//       })) || [],
+//       ratingDistribution: {
+//         excellent: data.reviews?.length
+//           ? Math.round(
+//               (data.reviews.filter((r) => r.rating >= 4.5).length /
+//                 data.reviews.length) *
+//                 100
+//             )
+//           : 0,
+//         good: data.reviews?.length
+//           ? Math.round(
+//               (data.reviews.filter((r) => r.rating >= 3.5 && r.rating < 4.5)
+//                 .length /
+//                 data.reviews.length) *
+//                 100
+//             )
+//           : 0,
+//         average: data.reviews?.length
+//           ? Math.round(
+//               (data.reviews.filter((r) => r.rating >= 2.5 && r.rating < 3.5)
+//                 .length /
+//                 data.reviews.length) *
+//                 100
+//             )
+//           : 0,
+//         belowAverage: data.reviews?.length
+//           ? Math.round(
+//               (data.reviews.filter((r) => r.rating >= 1.5 && r.rating < 2.5)
+//                 .length /
+//                 data.reviews.length) *
+//                 100
+//             )
+//           : 0,
+//         poor: data.reviews?.length
+//           ? Math.round(
+//               (data.reviews.filter((r) => r.rating < 1.5).length /
+//                 data.reviews.length) *
+//                 100
+//             )
+//           : 0,
+//       },
+//     };
+//   };
+
+//   const nextImage = () => {
+//     setCurrentImageIndex((prevIndex) =>
+//       prevIndex === property.images.length - 1 ? 0 : prevIndex + 1
+//     );
+//   };
+
+//   const prevImage = () => {
+//     setCurrentImageIndex((prevIndex) =>
+//       prevIndex === 0 ? property.images.length - 1 : prevIndex - 1
+//     );
+//   };
+
+//   const renderStars = (rating) => {
+//     return Array(5)
+//       .fill(0)
+//       .map((_, i) => (
+//         <Star
+//           key={i}
+//           className={`h-4 w-4 ${
+//             i < Math.floor(rating)
+//               ? "text-yellow-400 fill-yellow-400"
+//               : "text-gray-300"
+//           }`}
+//         />
+//       ));
+//   };
+
+//   const handleRatingClick = (rating) => {
+//     setUserRating(rating);
+//   };
+
+//   const handleRatingHover = (rating) => {
+//     setHoverRating(rating);
+//   };
+
+//   const handleSubmitReview = async () => {
+//     const token = localStorage.getItem("accessToken")?.replace(/^"|"$/g, "");
+//     if (!token) {
+//       alert("Please log in to submit a review.");
+//       return;
+//     }
+
+//     try {
+//       await axios.post(
+//         `${BACKEND_URL}/properties/add-review`,
+//         {
+//           propertyId: params.propertyId,
+//           rating: userRating,
+//           comment: reviewText,
+//         },
+//         {
+//           headers: { Authorization: token },
+//         }
+//       );
+//       alert("Review submitted successfully!");
+//       // Reset form
+//       setUserRating(0);
+//       setReviewText("");
+//       // Refetch property to update reviews
+//       const response = await axios.get(
+//         `${BACKEND_URL}/properties/getProperty/${params.propertyId}`,
+//         {
+//           headers: { Authorization: token },
+//         }
+//       );
+//       setProperty(transformPropertyData(response.data.property));
+//     } catch (err) {
+//       alert("Failed to submit review.");
+//       console.error("Error submitting review:", err);
+//     }
+//   };
+
+//   const renderTabContent = () => {
+//     switch (activeTab) {
+//       case "about":
+//         return (
+//           <div className="py-4">
+//             <h3 className="font-semibold text-lg mb-3">Description</h3>
+//             <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+//               {property.description}
+//             </p>
+
+//             <h3 className="font-semibold text-lg mb-3">Places Nearby</h3>
+//             <div className="flex flex-wrap gap-2 mb-8">
+//               {property.nearbyPlaces.map((place, index) => (
+//                 <div
+//                   key={index}
+//                   className="flex items-center bg-gray-100 rounded-full px-3 py-1.5 text-xs"
+//                 >
+//                   <span className="mr-1.5 bg-purple-100 rounded-full p-1 flex items-center justify-center">
+//                     <MapPin className="h-3 w-3 text-purple-600" />
+//                   </span>
+//                   {place.label}
+//                 </div>
+//               ))}
+//             </div>
+
+//             <h3 className="font-semibold text-lg mb-3">Property Details</h3>
+//             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+//               {property.propertyDetails.map((detail, index) => (
+//                 <div key={index} className="flex justify-between border-b pb-2">
+//                   <span className="text-sm text-gray-600">{detail.label}</span>
+//                   <span className="text-sm font-medium">{detail.value}</span>
+//                 </div>
+//               ))}
+//             </div>
+
+//             <h3 className="font-semibold text-lg mt-6 mb-3">Area of Property</h3>
+//             <div className="space-y-4 mb-8">
+//               {property.areaDetails.map((area, index) => (
+//                 <div
+//                   key={index}
+//                   className="flex justify-between bg-gray-50 p-3 rounded-lg"
+//                 >
+//                   <span className="text-sm text-gray-600">{area.label}</span>
+//                   <div className="text-right">
+//                     <div className="text-sm font-medium">{area.value}</div>
+//                     <div className="text-xs text-gray-500">{area.subValue}</div>
+//                   </div>
+//                 </div>
+//               ))}
+//             </div>
+
+//             <h3 className="font-semibold text-lg mt-6 mb-3">Parking</h3>
+//             <div className="grid grid-cols-2 gap-4">
+//               {property.parking.map((item, index) => (
+//                 <div
+//                   key={index}
+//                   className="flex justify-between bg-gray-50 p-3 rounded-lg"
+//                 >
+//                   <span className="text-sm text-gray-600">{item.label}</span>
+//                   <span className="text-sm font-medium">{item.value}</span>
+//                 </div>
+//               ))}
+//             </div>
+//           </div>
+//         );
+//       case "amenities":
+//         return (
+//           <div className="py-4">
+//             <h3 className="font-semibold text-lg mb-4">Amenities</h3>
+//             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+//               {property.amenities.map((amenity, index) => (
+//                 <div
+//                   key={index}
+//                   className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+//                 >
+//                   <div className="text-purple-500 bg-purple-50 p-2 rounded-full">
+//                     <MapPin className="h-5 w-5" />
+//                   </div>
+//                   <span className="text-sm font-medium">{amenity.label}</span>
+//                 </div>
+//               ))}
+//             </div>
+
+//             <h3 className="font-semibold text-lg mt-6 mb-4">Other Features</h3>
+//             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+//               {property.otherFeatures.map((feature, index) => (
+//                 <div
+//                   key={index}
+//                   className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+//                 >
+//                   <div className="text-blue-500 bg-blue-50 p-2 rounded-full">
+//                     <MapPin className="h-5 w-5" />
+//                   </div>
+//                   <span className="text-sm font-medium">{feature.label}</span>
+//                 </div>
+//               ))}
+//             </div>
+
+//             <h3 className="font-semibold text-lg mt-6 mb-4">
+//               Society/Building Features
+//             </h3>
+//             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+//               {property.societyFeatures.map((feature, index) => (
+//                 <div
+//                   key={index}
+//                   className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+//                 >
+//                   <div className="text-green-500 bg-green-50 p-2 rounded-full">
+//                     <MapPin className="h-5 w-5" />
+//                   </div>
+//                   <span className="text-sm font-medium">{feature.label}</span>
+//                 </div>
+//               ))}
+//             </div>
+//           </div>
+//         );
+//       case "furnishing":
+//         return (
+//           <div className="py-4">
+//             <h3 className="font-semibold text-lg mb-4">Furnishing Details</h3>
+//             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+//               {property.furnishing.map((item, index) => (
+//                 <div
+//                   key={index}
+//                   className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+//                 >
+//                   <div className="text-amber-500 bg-amber-50 p-2 rounded-full">
+//                     <MapPin className="h-5 w-5" />
+//                   </div>
+//                   <span className="text-sm font-medium">{item.label}</span>
+//                 </div>
+//               ))}
+//             </div>
+//           </div>
+//         );
+//       case "gallery":
+//         return (
+//           <div className="py-4">
+//             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+//               {property.images.map((image, index) => (
+//                 <div
+//                   key={index}
+//                   className="relative rounded-lg overflow-hidden group shadow-sm"
+//                 >
+//                   <Image
+//                     src={image.src || "/placeholder.svg"}
+//                     alt={image.alt}
+//                     width={200}
+//                     height={150}
+//                     className="w-full h-32 object-cover transition-transform duration-300 group-hover:scale-105"
+//                   />
+//                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-2">
+//                     <div className="text-white text-xs font-medium">
+//                       {image.label}
+//                     </div>
+//                     <button className="bg-white rounded-full p-1">
+//                       <MoreVertical className="h-4 w-4" />
+//                     </button>
+//                   </div>
+//                 </div>
+//               ))}
+//             </div>
+//           </div>
+//         );
+//       case "review":
+//         return (
+//           <div className="py-4">
+//             <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 bg-gray-50 p-6 rounded-xl">
+//               <div className="text-center">
+//                 <div className="text-5xl font-bold text-purple-600">
+//                   {property.owner.rating}
+//                 </div>
+//                 <div className="flex justify-center my-2">
+//                   {renderStars(property.owner.rating)}
+//                 </div>
+//                 <div className="text-sm text-gray-500">
+//                   Based on {property.owner.reviews} reviews
+//                 </div>
+//               </div>
+
+//               <div className="flex-1 space-y-2 w-full max-w-md">
+//                 <div className="flex items-center gap-2">
+//                   <span className="w-24 text-sm font-medium">Excellent</span>
+//                   <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+//                     <div
+//                       className="bg-green-500 h-full"
+//                       style={{ width: `${property.ratingDistribution.excellent}%` }}
+//                     ></div>
+//                   </div>
+//                   <span className="text-xs text-gray-500 w-8 text-right">
+//                     {property.ratingDistribution.excellent}%
+//                   </span>
+//                 </div>
+//                 <div className="flex items-center gap-2">
+//                   <span className="w-24 text-sm font-medium">Good</span>
+//                   <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+//                     <div
+//                       className="bg-lime-500 h-full"
+//                       style={{ width: `${property.ratingDistribution.good}%` }}
+//                     ></div>
+//                   </div>
+//                   <span className="text-xs text-gray-500 w-8 text-right">
+//                     {property.ratingDistribution.good}%
+//                   </span>
+//                 </div>
+//                 <div className="flex items-center gap-2">
+//                   <span className="w-24 text-sm font-medium">Average</span>
+//                   <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+//                     <div
+//                       className="bg-yellow-500 h-full"
+//                       style={{ width: `${property.ratingDistribution.average}%` }}
+//                     ></div>
+//                   </div>
+//                   <span className="text-xs text-gray-500 w-8 text-right">
+//                     {property.ratingDistribution.average}%
+//                   </span>
+//                 </div>
+//                 <div className="flex items-center gap-2">
+//                   <span className="w-24 text-sm font-medium">Below Average</span>
+//                   <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+//                     <div
+//                       className="bg-orange-500 h-full"
+//                       style={{
+//                         width: `${property.ratingDistribution.belowAverage}%`,
+//                       }}
+//                     ></div>
+//                   </div>
+//                   <span className="text-xs text-gray-500 w-8 text-right">
+//                     {property.ratingDistribution.belowAverage}%
+//                   </span>
+//                 </div>
+//                 <div className="flex items-center gap-2">
+//                   <span className="w-24 text-sm font-medium">Poor</span>
+//                   <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+//                     <div
+//                       className="bg-red-500 h-full"
+//                       style={{ width: `${property.ratingDistribution.poor}%` }}
+//                     ></div>
+//                   </div>
+//                   <span className="text-xs text-gray-500 w-8 text-right">
+//                     {property.ratingDistribution.poor}%
+//                   </span>
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* Review Submission Form */}
+//             <div className="bg-white border rounded-xl p-6 mb-8 shadow-sm">
+//               <h3 className="font-semibold text-lg mb-4">Write a Review</h3>
+
+//               <div className="mb-4">
+//                 <label className="block text-sm font-medium mb-2">
+//                   Your Rating
+//                 </label>
+//                 <div className="flex gap-1">
+//                   {[1, 2, 3, 4, 5].map((star) => (
+//                     <button
+//                       key={star}
+//                       type="button"
+//                       onClick={() => handleRatingClick(star)}
+//                       onMouseEnter={() => handleRatingHover(star)}
+//                       onMouseLeave={() => handleRatingHover(0)}
+//                       className="focus:outline-none"
+//                     >
+//                       <Star
+//                         className={`h-8 w-8 ${
+//                           star <= (hoverRating || userRating)
+//                             ? "text-yellow-400 fill-yellow-400"
+//                             : "text-gray-300"
+//                         } transition-colors`}
+//                       />
+//                     </button>
+//                   ))}
+//                 </div>
+//               </div>
+
+//               <div className="mb-4">
+//                 <label className="block text-sm font-medium mb-2">
+//                   Your Review
+//                 </label>
+//                 <textarea
+//                   value={reviewText}
+//                   onChange={(e) => setReviewText(e.target.value)}
+//                   placeholder="Share your experience with this property..."
+//                   className="w-full border rounded-lg py-3 px-4 h-32 resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+//                 ></textarea>
+//               </div>
+
+//               <button
+//                 onClick={handleSubmitReview}
+//                 disabled={!userRating || !reviewText.trim()}
+//                 className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium ${
+//                   userRating && reviewText.trim()
+//                     ? "bg-purple-600 text-white hover:bg-purple-700"
+//                     : "bg-gray-200 text-gray-500 cursor-not-allowed"
+//                 } transition-colors`}
+//               >
+//                 <Send className="h-4 w-4" />
+//                 Submit Review
+//               </button>
+//             </div>
+
+//             <h3 className="font-semibold text-lg mb-4">Recent Reviews</h3>
+//             <div className="space-y-6">
+//               {property.reviews.map((review, index) => (
+//                 <div
+//                   key={index}
+//                   className="border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+//                 >
+//                   <div className="flex items-center gap-3 mb-3">
+//                     <Image
+//                       src={review.user.image || "/placeholder.svg"}
+//                       alt={review.user.name}
+//                       width={48}
+//                       height={48}
+//                       className="rounded-full border-2 border-white shadow-sm"
+//                     />
+//                     <div>
+//                       <div className="font-medium">{review.user.name}</div>
+//                       <div className="flex items-center">
+//                         {renderStars(review.user.rating)}
+//                         <span className="ml-1 text-sm font-medium">
+//                           {review.user.rating}
+//                         </span>
+//                       </div>
+//                     </div>
+//                     <div className="ml-auto text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+//                       {review.time}
+//                     </div>
+//                   </div>
+//                   <p className="text-sm text-gray-700 leading-relaxed mb-3">
+//                     {review.comment}
+//                   </p>
+//                   <div className="flex gap-4 mt-2">
+//                     <button className="text-xs text-purple-600 hover:text-purple-800 font-medium">
+//                       Reply
+//                     </button>
+//                     <button className="text-xs text-red-500 hover:text-red-700 font-medium">
+//                       Delete
+//                     </button>
+//                   </div>
+//                 </div>
+//               ))}
+//             </div>
+//           </div>
+//         );
+//       default:
+//         return null;
+//     }
+//   };
+
+//   const FeatureIcon = ({ type }) => {
+//     switch (type) {
+//       case "layout":
+//         return <Home className="h-5 w-5" />;
+//       case "square":
+//         return <SquareFootage className="h-5 w-5" />;
+//       case "layers":
+//         return <Layers className="h-5 w-5" />;
+//       case "tag":
+//         return <Tag className="h-5 w-5" />;
+//       case "home":
+//         return <Clock className="h-5 w-5" />;
+//       default:
+//         return <Home className="h-5 w-5" />;
+//     }
+//   };
+
+//   if (loading) {
+//     return (
+//       <div className="flex justify-center items-center min-h-screen">
+//         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+//       </div>
+//     );
+//   }
+
+//   if (error || !property) {
+//     return (
+//       <div className="flex justify-center items-center min-h-screen">
+//         <p className="text-red-500">{error || "Property not found."}</p>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="bg-gray-50 min-h-screen">
+//       {/* Header */}
+//       <div className="bg-white shadow-sm sticky top-0 z-10">
+//         <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
+//           <h1 className="text-xl font-semibold text-gray-800">
+//             Property Details
+//           </h1>
+//           <div className="flex items-center text-sm">
+//             <span className="text-gray-500">
+//               Property ({property.category || "Residential"})
+//             </span>
+//             <span className="mx-2 text-gray-300">•</span>
+//             <span className="text-gray-500">{property.propertyType || "Sell"}</span>
+//             <span className="mx-2 text-gray-300">•</span>
+//             <Link
+//               href="#"
+//               className="text-purple-600 font-medium hover:text-purple-800"
+//             >
+//               View
+//             </Link>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Main Content */}
+//       <div className="max-w-7xl mx-auto px-4 py-8">
+//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+//           {/* Left Column - Property Images and Details */}
+//           <div className="lg:col-span-2">
+//             {/* Property Image Carousel */}
+//             <div className="relative rounded-xl overflow-hidden mb-6 shadow-md bg-white">
+//               <div className="relative aspect-video">
+//                 <Image
+//                   src={property.images[currentImageIndex].src || "/placeholder.svg"}
+//                   alt={property.images[currentImageIndex].alt}
+//                   fill
+//                   className="object-cover"
+//                 />
+//                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+//                 <button
+//                   onClick={prevImage}
+//                   className="absolute left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
+//                 >
+//                   <ChevronLeft className="h-5 w-5" />
+//                 </button>
+//                 <button
+//                   onClick={nextImage}
+//                   className="absolute right-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
+//                 >
+//                   <ChevronRight className="h-5 w-5" />
+//                 </button>
+//                 <div className="absolute bottom-4 left-4 bg-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-md">
+//                   {property.images[currentImageIndex].label}
+//                 </div>
+//                 <div className="absolute top-4 right-4 flex gap-2">
+//                   <button className="bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors">
+//                     <Heart className="h-5 w-5 text-red-500" />
+//                   </button>
+//                   <button className="bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors">
+//                     <Share2 className="h-5 w-5 text-blue-500" />
+//                   </button>
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* Property Title and Location */}
+//             <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+//               <div className="flex justify-between items-start">
+//                 <div>
+//                   <h2 className="text-2xl font-bold text-gray-800">
+//                     {property.title}
+//                   </h2>
+//                   <div className="flex items-center text-gray-600 mt-1">
+//                     <MapPin className="h-4 w-4 mr-1.5 text-purple-500" />
+//                     <span className="text-sm">{property.location}</span>
+//                   </div>
+//                 </div>
+//                 <button className="text-gray-500 hover:bg-gray-100 p-2 rounded-full transition-colors">
+//                   <MoreVertical className="h-5 w-5" />
+//                 </button>
+//               </div>
+
+//               {/* Price */}
+//               <div className="flex justify-between items-center mt-4 pb-4 border-b">
+//                 <div>
+//                   <div className="flex items-center gap-2">
+//                     <span className="text-2xl font-bold text-purple-600">
+//                       {property.price}
+//                     </span>
+//                     <span className="text-sm text-gray-600">
+//                       {property.pricePerSqft}
+//                     </span>
+//                   </div>
+//                 </div>
+//                 <div className="text-sm font-medium px-3 py-1 bg-green-100 text-green-800 rounded-full">
+//                   {property.isNegotiable && "Negotiable"}
+//                 </div>
+//               </div>
+
+//               {/* Tags */}
+//               <div className="flex flex-wrap gap-2 mt-4">
+//                 {property.tags.map((tag, index) => (
+//                   <span
+//                     key={index}
+//                     className="bg-gray-100 text-gray-800 text-xs px-3 py-1.5 rounded-full font-medium"
+//                   >
+//                     {tag}
+//                   </span>
+//                 ))}
+//                 <button className="ml-auto bg-purple-100 text-purple-800 text-xs px-3 py-1.5 rounded-full flex items-center font-medium">
+//                   Play Video <ChevronRight className="h-3 w-3 ml-1" />
+//                 </button>
+//               </div>
+//             </div>
+
+//             {/* Features */}
+//             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+//               {property.features.map((feature, index) => (
+//                 <div
+//                   key={index}
+//                   className="flex flex-col items-center text-center p-4 border rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow"
+//                 >
+//                   <div className="text-purple-500 bg-purple-50 p-2.5 rounded-full mb-2">
+//                     <FeatureIcon type={feature.icon} />
+//                   </div>
+//                   <span className="text-xs text-gray-700 font-medium">
+//                     {feature.label}
+//                   </span>
+//                 </div>
+//               ))}
+//             </div>
+
+//             {/* Tabs */}
+//             <div className="bg-white rounded-t-xl shadow-sm">
+//               <div className="flex overflow-x-auto scrollbar-hide">
+//                 {["about", "amenities", "furnishing", "gallery", "review"].map(
+//                   (tab) => (
+//                     <button
+//                       key={tab}
+//                       className={`px-6 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+//                         activeTab === tab
+//                           ? "text-purple-600 border-purple-600"
+//                           : "text-gray-600 border-transparent hover:text-purple-500 hover:border-purple-200"
+//                       }`}
+//                       onClick={() => setActiveTab(tab)}
+//                     >
+//                       {tab.charAt(0).toUpperCase() + tab.slice(1)}
+//                     </button>
+//                   )
+//                 )}
+//               </div>
+//             </div>
+
+//             {/* Tab Content */}
+//             <div className="bg-white rounded-b-xl shadow-sm p-6 mb-6">
+//               {renderTabContent()}
+//             </div>
+//           </div>
+
+//           {/* Right Column - Owner Info */}
+//           <div>
+//             <div className="bg-white border rounded-xl p-6 mb-6 shadow-sm sticky top-24">
+//               <h3 className="text-lg font-semibold mb-4 text-gray-800">
+//                 Property Owner
+//               </h3>
+//               <div className="flex flex-col items-center">
+//                 <Image
+//                   src={property.owner.image || "/placeholder.svg"}
+//                   alt={property.owner.name}
+//                   width={100}
+//                   height={100}
+//                   className="rounded-full border-4 border-white shadow-md mb-3"
+//                 />
+//                 <h4 className="font-semibold text-lg">{property.owner.name}</h4>
+//                 <div className="flex items-center my-2">
+//                   {renderStars(property.owner.rating)}
+//                   <span className="ml-1 font-medium">
+//                     {property.owner.rating}
+//                   </span>
+//                   <span className="ml-1 text-xs text-gray-500">
+//                     {property.owner.reviews} reviews
+//                   </span>
+//                 </div>
+//                 <div className="w-full mt-4 space-y-3">
+//                   <a
+//                     href={`https://wa.me/${property.owner.phone.replace(
+//                       /\s+/g,
+//                       ""
+//                     )}`}
+//                     className="flex items-center justify-center gap-2 w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-medium"
+//                   >
+//                     <WhatsApp className="h-5 w-5" />
+//                     <span>{property.owner.phone}</span>
+//                   </a>
+//                   <a
+//                     href={`tel:${property.owner.phone.replace(/\s+/g, "")}`}
+//                     className="flex items-center justify-center gap-2 w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
+//                   >
+//                     <Phone className="h-5 w-5" />
+//                     <span>{property.owner.phone}</span>
+//                   </a>
+//                 </div>
+//                 <div className="w-full mt-5 grid grid-cols-2 gap-3">
+//                   <button
+//                     onClick={() => setShowNotify(true)}
+//                     className="border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+//                   >
+//                     Notify
+//                   </button>
+//                   <button className="bg-purple-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
+//                     View Profile
+//                   </button>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Notify Modal */}
+//       {showNotify && (
+//         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+//           <div className="bg-white rounded-xl w-full max-w-md mx-4 shadow-xl">
+//             <div className="flex justify-between items-center p-4 border-b">
+//               <h3 className="font-semibold text-lg">Notify</h3>
+//               <button
+//                 onClick={() => setShowNotify(false)}
+//                 className="text-gray-500 hover:bg-gray-100 p-1.5 rounded-full transition-colors"
+//               >
+//                 <X className="h-5 w-5" />
+//               </button>
+//             </div>
+//             <div className="p-6">
+//               <div className="mb-4">
+//                 <label className="block text-sm font-medium mb-2">
+//                   Select Reason
+//                 </label>
+//                 <div className="relative">
+//                   <select className="w-full border rounded-lg py-2.5 px-3 appearance-none pr-8 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+//                     <option>Change Photos</option>
+//                     <option>Wrong Information</option>
+//                     <option>Property Not Available</option>
+//                     <option>Other</option>
+//                   </select>
+//                   <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+//                     <svg
+//                       xmlns="http://www.w3.org/2000/svg"
+//                       width="24"
+//                       height="24"
+//                       viewBox="0 0 24 24"
+//                       fill="none"
+//                       stroke="currentColor"
+//                       strokeWidth="2"
+//                       strokeLinecap="round"
+//                       strokeLinejoin="round"
+//                       className="h-4 w-4"
+//                     >
+//                       <path d="m6 9 6 6 6-6"></path>
+//                     </svg>
+//                   </div>
+//                 </div>
+//               </div>
+//               <div className="mb-4">
+//                 <label className="block text-sm font-medium mb-2">
+//                   Notification
+//                 </label>
+//                 <textarea
+//                   placeholder="Enter Notification Text"
+//                   className="w-full border rounded-lg py-2.5 px-3 h-32 resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+//                 ></textarea>
+//               </div>
+//               <div className="grid grid-cols-2 gap-3 mt-6">
+//                 <button
+//                   onClick={() => setShowNotify(false)}
+//                   className="border border-gray-300 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+//                 >
+//                   Clear
+//                 </button>
+//                 <button className="bg-purple-600 text-white py-2.5 rounded-lg font-medium hover:bg-purple-700 transition-colors">
+//                   Share Now
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }

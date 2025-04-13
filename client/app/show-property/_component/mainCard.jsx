@@ -318,7 +318,7 @@ const MainCard = () => {
                         <Phone className="h-4 w-4 mr-1" />
                         Call
                       </Button>
-                      <Link href={`/properties/${property._id}`}>
+                      <Link href={`/show-property/${property._id}`}>
                         <Button
                           size="sm"
                           className="rounded-full bg-teal-600 hover:bg-teal-700 transition-colors px-4"
