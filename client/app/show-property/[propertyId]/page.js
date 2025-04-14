@@ -1,3 +1,4 @@
+// page.js
 "use client";
 
 import { useEffect, useState } from "react";
@@ -25,13 +26,507 @@ import axios from "axios";
 import BACKEND_URL from "@/lib/BACKEND_URL";
 import { useParams, useSearchParams } from "next/navigation";
 
+const transformPropertyData = (data) => {
+  const category = data.category || "Residential";
+
+  // Convert array-based fields to objects
+  const arrayToObject = (arr, map) =>
+    arr?.reduce((acc, key) => {
+      if (map[key]) acc[key] = true;
+      return acc;
+    }, {}) || {};
+
+  // Define mappings
+  const amenitiesMap = {
+    maintenanceStaff: "Maintenance Staff",
+    vastuCompliant: "Vaastu Compliant",
+    securityFireAlarm: "Security / Fire Alarm",
+    visitorParking: "Visitor Parking",
+    gasLine: "Gas Line",
+    wifi: "Wi-Fi/Cable",
+    waterSupply: "Water Supply",
+    powerBackup: "Power Backup",
+    parking: "Parking",
+    clubHouse: "Club House",
+    childrensPlayArea: "Children's Play Area",
+    sportsFacilities: "Sports Facilities",
+    joggingWalkingTracks: "Jogging/Walking Tracks",
+    swimmingPool: "Swimming Pool",
+    gym: "Gym",
+    cinemaRoom: "Cinema Room",
+    libraryReadingRoom: "Library/Reading Room",
+    projector: "Projector",
+    screen: "Screen",
+    soundSystem: "Sound System",
+    lightingSetup: "Lighting Setup",
+    airConditioning: "Air Conditioning",
+    cateringServices: "Catering Services",
+    decorationServices: "Decoration Services",
+    stageSetup: "Stage Setup",
+    podium: "Podium",
+    securityServices: "Security Services",
+    cleaningServices: "Cleaning Services",
+    hotWater: "Hot Water",
+    laundryService: "Laundry Service",
+    housekeeping: "Housekeeping",
+    roomService: "Room Service",
+    restaurant: "Restaurant",
+    bar: "Bar",
+    conferenceRoom: "Conference Room",
+    lift: "Lift",
+    cctv: "CCTV",
+    security24x7: "24x7 Security",
+    firstAidKit: "First Aid Kit",
+    fireExtinguisher: "Fire Extinguisher",
+    wheelChairAccess: "Wheelchair Access",
+    fireSafety: "Fire Safety",
+    pantry: "Pantry",
+    cafeteria: "Cafeteria",
+    receptionService: "Reception Service",
+    gymFitnessCentre: "Gym/Fitness Centre",
+    breakoutArea: "Breakout Area",
+    commonRefrigerator: "Common Refrigerator",
+    roWater: "RO Water",
+    cookingAllowed: "Cooking Allowed",
+    twoWheelerParking: "Two-Wheeler Parking",
+    fourWheelerParking: "Four-Wheeler Parking",
+    geyser: "Geyser",
+    studyTable: "Study Table",
+    wardrobe: "Wardrobe",
+    tv: "TV",
+    microwave: "Microwave",
+    recreationRoom: "Recreation Room",
+    readingRoom: "Reading Room",
+    garden: "Garden",
+    wifiCable: "Wi-Fi/Cable",
+    highSpeedWiFi: "High-Speed Wi-Fi",
+    printingServices: "Printing Services",
+    conferenceRooms: "Conference Rooms",
+    phoneBooths: "Phone Booths",
+    teaCoffee: "Tea/Coffee",
+    access24x7: "24x7 Access",
+    security: "Security",
+    receptionServices: "Reception Services",
+    elevator: "Elevator",
+    loadingDock: "Loading Dock",
+    coldStorageFacility: "Cold Storage Facility",
+  };
+
+  const otherFeaturesMap = {
+    separateEntryForServantRoom: "Separate Entry for Servant Room",
+    noOpenDrainageAround: "No Open Drainage Around",
+    petFriendly: "Pet-Friendly",
+    wheelchairFriendly: "Wheelchair Friendly",
+    rainWaterHarvesting: "Rain Water Harvesting",
+    cornerProperty: "Corner Property",
+    poojaRoom: "Pooja Room",
+    guestRoom: "Guest Room",
+    servantRoom: "Servant Room",
+    studyRoom: "Study Room",
+    shopFrontage: "Shop Frontage",
+    height: "Height",
+    parkingAvailability: "Parking Availability",
+    electricityLoad: "Electricity Load",
+    shutterType: "Shutter Type",
+    advertisingSpace: "Advertising Space",
+    entryType: "Entry Type",
+    ventilation: "Ventilation",
+    powerSupply: "Power Supply",
+    flooringType: "Flooring Type",
+    hazardousMaterialStorage: "Hazardous Material Storage",
+    temperatureControlled: "Temperature Controlled",
+    fireSprinklerSystem: "Fire Sprinkler System",
+    fireSafetyCertificate: "Fire Safety Certificate",
+    buildingStabilityCertificate: "Building Stability Certificate",
+    environmentalClearance: "Environmental Clearance",
+    eventPlannerSupport: "Event Planner Support",
+    technicalStaffOnSite: "Technical Staff On-Site",
+    customizableLayouts: "Customizable Layouts",
+    loungeArea: "Lounge Area",
+  };
+
+  const societyFeaturesMap = {
+    swimmingPool: "Swimming Pool",
+    security24x7: "24/7 Security",
+    gymFitnessCentre: "Gym/Fitness Center",
+    shoppingCenter: "Shopping Centre",
+    clubHouse: "Clubhouse",
+    childrensPlayArea: "Children's Play Area",
+    sportsFacilities: "Sports Facilities",
+    joggingWalkingTracks: "Jogging/Walking Tracks",
+    gardenParks: "Garden/Parks",
+    communityHalls: "Community Halls",
+    cinemaRoom: "Cinema Room",
+    libraryReadingRoom: "Library/Reading Room",
+  };
+
+  const furnishingMap = {
+    fans: "Fans",
+    lights: "Lights",
+    tv: "TV",
+    beds: "Beds",
+    ac: "AC",
+    wardrobes: "Wardrobes",
+    exhaustFans: "Exhaust Fans",
+    curtains: "Curtains",
+    floorLamps: "Floor Lamps",
+    diningTable: "Dining Table",
+    sofa: "Sofa",
+    stove: "Stove",
+    kitchenCabinets: "Kitchen Cabinets",
+    chimney: "Chimney",
+    coffeeTable: "Coffee Table",
+    refrigerator: "Refrigerator",
+    microwave: "Microwave",
+    dishwasher: "Dishwasher",
+    waterPurifier: "Water Purifier",
+    washingMachine: "Washing Machine",
+    workstations: "Workstations",
+    meetingRooms: "Meeting Rooms",
+    conferenceRooms: "Conference Rooms",
+  };
+
+  const nearbyPlacesMap = {
+    hospital: "Hospital",
+    school: "School",
+    metro: "Metro Station",
+    mall: "Mall",
+    market: "Market",
+    railway: "Railway Station",
+    airport: "Airport",
+    highway: "Highway",
+    busStation: "Bus Station",
+  };
+
+  // Transform fields
+  const amenitiesObj = Array.isArray(data.amenities)
+    ? arrayToObject(data.amenities, amenitiesMap)
+    : data.amenities || {};
+  const furnishingObj = Array.isArray(data.furnishingDetails)
+    ? arrayToObject(data.furnishingDetails, furnishingMap)
+    : data.furnishingDetails || {};
+
+  const amenities = Object.entries(amenitiesObj).reduce((acc, [key, value]) => {
+    if (value && amenitiesMap[key]) {
+      acc.push({ icon: "user", label: amenitiesMap[key] });
+    }
+    return acc;
+  }, []);
+
+  const furnishing = Object.entries(furnishingObj).reduce((acc, [key, value]) => {
+    if ((typeof value === "number" && value > 0) || (typeof value === "boolean" && value)) {
+      acc.push({
+        icon: "fan",
+        label: `${typeof value === "number" ? value : 1} ${furnishingMap[key] || key}`,
+      });
+    }
+    return acc;
+  }, []);
+
+  const societyFeatures = Object.entries(data.societyBuildingFeatures || {}).reduce(
+    (acc, [key, value]) => {
+      if (value && societyFeaturesMap[key]) {
+        acc.push({ icon: "swimming-pool", label: societyFeaturesMap[key] });
+      }
+      return acc;
+    },
+    []
+  );
+
+  const otherFeatures = Object.entries(data.otherFeatures || {}).reduce(
+    (acc, [key, value]) => {
+      if (value && otherFeaturesMap[key]) {
+        acc.push({ icon: "door", label: otherFeaturesMap[key] });
+      }
+      return acc;
+    },
+    []
+  );
+
+  const nearbyPlaces = Object.entries(data.nearbyPlaces || {}).reduce(
+    (acc, [key, value]) => {
+      if (value && nearbyPlacesMap[key]) {
+        acc.push({ icon: "train", label: nearbyPlacesMap[key] });
+      }
+      return acc;
+    },
+    []
+  );
+
+  // Category-specific logic
+  let pricing = {};
+  let features = [];
+  let propertyDetails = [];
+  let areaDetails = [];
+
+  switch (category) {
+    case "Residential":
+      pricing = {
+        expectedPrice: data.pricing?.expectedPrice || null,
+        PricePerSqft: data.pricing?.PricePerSqft || null,
+      };
+      features = [
+        {
+          icon: "layout",
+          label: data.about ? `${data.about.bedrooms || 0} BHK & ${data.about.bathrooms || 0} Baths` : "N/A",
+        },
+        {
+          icon: "square",
+          label: data.propertyArea?.carpetArea ? `${data.propertyArea.carpetArea} sq.ft.` : "N/A",
+        },
+        {
+          icon: "layers",
+          label: data.propertyOnFloor ? `${data.propertyOnFloor} / ${data.totalFloors || "N/A"} floors` : "N/A",
+        },
+        {
+          icon: "tag",
+          label: pricing.PricePerSqft ? `₹${pricing.PricePerSqft.toLocaleString("en-IN")} / sq.ft.` : "N/A",
+        },
+        {
+          icon: "home",
+          label: data.ageOfProperty ? `${data.ageOfProperty} Year Old` : "New Property",
+        },
+      ];
+      propertyDetails = [
+        { label: "Bedrooms", value: data.about?.bedrooms || "N/A" },
+        { label: "Bathrooms", value: data.about?.bathrooms || "N/A" },
+        { label: "Balconies", value: data.about?.balconies || "N/A" },
+        { label: "Total no. of Floor", value: data.totalFloors || "N/A" },
+        { label: "Property on Floor", value: data.propertyOnFloor || "N/A" },
+        { label: "Availability Status", value: data.availabilityStatus || "N/A" },
+        {
+          label: "Available From",
+          value: data.availableFrom ? new Date(data.availableFrom).toLocaleDateString() : "N/A",
+        },
+        { label: "Age of Property", value: data.ageOfProperty ? `${data.ageOfProperty} years` : "N/A" },
+        { label: "Furnishing Status", value: data.furnishingStatus || "N/A" },
+        { label: "Facing", value: data.facing || "N/A" },
+        { label: "Power backup", value: data.powerBackup || "N/A" },
+        { label: "Wheelchair Friendly", value: data.otherFeatures?.wheelchairFriendly ? "Yes" : "No" },
+        { label: "Water Source", value: data.waterSource || "N/A" },
+        { label: "Width of facing road", value: data.roadWidth || "N/A" },
+        { label: "Type of flooring", value: data.flooring || "N/A" },
+        { label: "Property ID", value: data._id },
+      ];
+      areaDetails = [
+        {
+          label: "Carpet Area",
+          value: data.propertyArea?.carpetArea ? `${data.propertyArea.carpetArea} Sq.ft.` : "N/A",
+          subValue: data.propertyArea?.carpetArea
+            ? `${(data.propertyArea.carpetArea * 0.092903).toFixed(2)} Sq.m.` : "N/A",
+        },
+        {
+          label: "Built-up Area",
+          value: data.propertyArea?.carpetArea
+            ? `${(data.propertyArea.carpetArea * 1.1).toFixed(0)} Sq.ft.` : "N/A",
+          subValue: data.propertyArea?.carpetArea
+            ? `${(data.propertyArea.carpetArea * 1.1 * 0.092903).toFixed(2)} Sq.m.` : "N/A",
+        },
+        {
+          label: "Super Built-up Area",
+          value: data.propertyArea?.carpetArea
+            ? `${(data.propertyArea.carpetArea * 1.2).toFixed(0)} Sq.ft.` : "N/A",
+          subValue: data.propertyArea?.carpetArea
+            ? `${(data.propertyArea.carpetArea * 1.2 * 0.092903).toFixed(2)} Sq.m.` : "N/A",
+        },
+      ];
+      break;
+
+    case "Hotel":
+      pricing = {
+        expectedPrice: data.pricing?.basePricePerNight || data.pricing?.finalPrice || null,
+      };
+      features = [
+        {
+          icon: "layout",
+          label: data.propertyDetails?.totalRooms ? `${data.propertyDetails.totalRooms} Rooms` : "N/A",
+        },
+        {
+          icon: "star",
+          label: data.propertyDetails?.starRating ? `${data.propertyDetails.starRating} Star` : "N/A",
+        },
+        {
+          icon: "home",
+          label: data.ageOfProperty ? `${data.ageOfProperty} Year Old` : "New Property",
+        },
+      ];
+      propertyDetails = [
+        { label: "Property Name", value: data.propertyDetails?.propertyName || "N/A" },
+        { label: "Total Rooms", value: data.propertyDetails?.totalRooms || "N/A" },
+        { label: "Star Rating", value: data.propertyDetails?.starRating || "N/A" },
+        { label: "Availability Status", value: data.availabilityStatus || "N/A" },
+        { label: "Property ID", value: data._id },
+      ];
+      areaDetails = [
+        {
+          label: "Total Area",
+          value: data.propertyDetails?.totalArea?.size ? `${data.propertyDetails.totalArea.size} Sq.ft.` : "N/A",
+          subValue: data.propertyDetails?.totalArea?.size
+            ? `${(data.propertyDetails.totalArea.size * 0.092903).toFixed(2)} Sq.m.` : "N/A",
+        },
+      ];
+      break;
+
+    case "Office":
+    case "Shop":
+    case "Warehouse":
+    case "EventSpace":
+    case "PG":
+      pricing = {
+        expectedPrice:
+          data.pricing?.price?.amount ||
+          data.pricing?.rentalDetails?.monthlyRent ||
+          data.pricing?.monthlyRent ||
+          null,
+      };
+      features = [
+        {
+          icon: "layout",
+          label: data.propertyDetails?.propertyName || data.subCategory || category,
+        },
+        {
+          icon: "square",
+          label: data.propertyDetails?.carpetArea?.size || data.carpetArea?.size
+            ? `${data.propertyDetails?.carpetArea?.size || data.carpetArea?.size} sq.ft.` : "N/A",
+        },
+        {
+          icon: "layers",
+          label: data.propertyDetails?.floorDetails
+            ? `${data.propertyDetails.floorDetails.officeOnFloor || "N/A"} / ${data.propertyDetails.floorDetails.totalFloors || "N/A"} floors`
+            : "N/A",
+        },
+      ];
+      propertyDetails = [
+        { label: "Type", value: data.propertyDetails?.officeType || data.subCategory || category },
+        { label: "Total Floors", value: data.propertyDetails?.floorDetails?.totalFloors || "N/A" },
+        { label: "Property on Floor", value: data.propertyDetails?.floorDetails?.officeOnFloor || "N/A" },
+        { label: "Furnished Status", value: data.propertyDetails?.furnishedStatus || data.furnishingStatus || "N/A" },
+        { label: "Availability Status", value: data.availabilityStatus || "N/A" },
+        { label: "Property ID", value: data._id },
+      ];
+      areaDetails = [
+        {
+          label: "Carpet Area",
+          value: data.propertyDetails?.carpetArea?.size || data.carpetArea?.size
+            ? `${data.propertyDetails?.carpetArea?.size || data.carpetArea?.size} Sq.ft.` : "N/A",
+          subValue: data.propertyDetails?.carpetArea?.size || data.carpetArea?.size
+            ? `${((data.propertyDetails?.carpetArea?.size || data.carpetArea?.size) * 0.092903).toFixed(2)} Sq.m.` : "N/A",
+        },
+      ];
+      break;
+
+    default:
+      pricing = {
+        expectedPrice: Array.isArray(data.pricing) ? data.pricing[0] : data.pricing?.expectedPrice || null,
+      };
+      features = [
+        {
+          icon: "home",
+          label: data.ageOfProperty ? `${data.ageOfProperty} Year Old` : "New Property",
+        },
+      ];
+      propertyDetails = [
+        { label: "Category", value: category },
+        { label: "Availability Status", value: data.availabilityStatus || "N/A" },
+        { label: "Property ID", value: data._id },
+      ];
+      areaDetails = [
+        {
+          label: "Total Area",
+          value: data.carpetArea?.size ? `${data.carpetArea.size} Sq.ft.` : "N/A",
+          subValue: data.carpetArea?.size
+            ? `${(data.carpetArea.size * 0.092903).toFixed(2)} Sq.m.` : "N/A",
+        },
+      ];
+  }
+
+  return {
+    id: data._id,
+    title: `${category} in ${data.location?.locality || "Unknown"}`,
+    location: [
+      data.location?.houseNumber,
+      data.location?.apartment,
+      data.location?.subLocality,
+      data.location?.locality,
+      data.location?.city,
+      data.location?.state,
+    ]
+      .filter(Boolean)
+      .join(", "),
+    price:data.pricing?.expectedPrice
+    ? `₹${data.pricing.expectedPrice.toLocaleString("en-IN")}`
+    : data.pricing?.price?.amount
+    ? `₹${data.pricing.price.amount.toLocaleString("en-IN")}`
+    : data.pricing?.monthlyRent
+    ? `₹${data.pricing.monthlyRent.toLocaleString("en-IN")}/mo`
+    : "Price N/A",
+    pricePerSqft: data.pricing.PricePerSqft ? `₹${data.pricing.PricePerSqft.toLocaleString("en-IN")} / sqft` : "N/A",
+    isNegotiable: true,
+    tags: [category, data.availabilityStatus || "N/A", data.furnishingStatus || "Unfurnished"].filter(Boolean),
+    features,
+    owner: {
+      name: data.user?.name || "Unknown Owner",
+      image: "/placeholder.svg?height=80&width=80",
+      rating: data.reviews?.length
+        ? (data.reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / data.reviews.length).toFixed(1)
+        : 0,
+      reviews: data.reviews?.length || 0,
+      phone: data.user?.mobile || "+91 00000 00000",
+      WhatsApp: data.user?.whatsappMobile || "+91 00000 00000",
+    },
+    description: data.description || "No description available.",
+    images: data.images?.map((img, index) => ({
+      src: img.url || "/placeholder.svg?height=400&width=600",
+      alt: img.name || `Image ${index + 1}`,
+      label: img.name || `Image ${index + 1}`,
+    })) || [],
+    amenities,
+    otherFeatures,
+    societyFeatures,
+    furnishing,
+    propertyDetails,
+    areaDetails,
+    parking: [
+      { label: "Covered Parking", value: data.parking?.covered || "0" },
+      { label: "Open Parking", value: data.parking?.open || "0" },
+    ],
+    nearbyPlaces,
+    reviews: data.reviews?.map((review) => ({
+      user: {
+        name: review.user?.name || "Anonymous",
+        image: "/placeholder.svg?height=40&width=40",
+        rating: review.rating || 0,
+      },
+      comment: review.comment || "No comment provided.",
+      time: review.createdAt ? new Date(review.createdAt).toLocaleString() : "Unknown time",
+    })) || [],
+    ratingDistribution: {
+      excellent: data.reviews?.length
+        ? Math.round((data.reviews.filter((r) => r.rating >= 4.5).length / data.reviews.length) * 100)
+        : 0,
+      good: data.reviews?.length
+        ? Math.round((data.reviews.filter((r) => r.rating >= 3.5 && r.rating < 4.5).length / data.reviews.length) * 100)
+        : 0,
+      average: data.reviews?.length
+        ? Math.round((data.reviews.filter((r) => r.rating >= 2.5 && r.rating < 3.5).length / data.reviews.length) * 100)
+        : 0,
+      belowAverage: data.reviews?.length
+        ? Math.round((data.reviews.filter((r) => r.rating >= 1.5 && r.rating < 2.5).length / data.reviews.length) * 100)
+        : 0,
+      poor: data.reviews?.length
+        ? Math.round((data.reviews.filter((r) => r.rating < 1.5).length / data.reviews.length) * 100)
+        : 0,
+    },
+  };
+};
+
 export default function PropertyDetails() {
-  const {propertyId} = useParams()
-  console.log(propertyId);
+  const { propertyId } = useParams();
   const [property, setProperty] = useState(null);
   const [activeTab, setActiveTab] = useState("about");
   const [showNotify, setShowNotify] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [userRating, setUserRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
@@ -50,23 +545,22 @@ export default function PropertyDetails() {
 
       try {
         setLoading(true);
-        
         const response = await axios.get(
           `${BACKEND_URL}/properties/getProperty/${propertyId}`,
           {
             headers: { Authorization: token },
           }
         );
-        console.log(response);
         const fetchedProperty = response.data.property;
-        console.log(fetchProperty);
-       
-        // Transform the data to match the frontend structure
+        console.log("Fetched Property:", fetchedProperty); // Fixed typo: fetchProperty -> fetchedProperty
+        if (!fetchedProperty) {
+          throw new Error("No property data returned.");
+        }
         const transformedProperty = transformPropertyData(fetchedProperty);
-        console.log(transformedProperty)
+        console.log("Transformed Property:", transformedProperty);
         setProperty(transformedProperty);
       } catch (err) {
-        setError("Failed to fetch property details: " + err.message);
+        setError(`Failed to fetch property details: ${err.response?.data?.error || err.message}`);
         console.error("Error fetching property:", err);
       } finally {
         setLoading(false);
@@ -75,315 +569,6 @@ export default function PropertyDetails() {
 
     fetchProperty();
   }, [propertyId]);
-
-  // Transform backend data to match frontend structure
-  const transformPropertyData = (data) => {
-    // Convert amenities object to array
-    const amenitiesMap = {
-      maintenanceStaff: "Maintenance Staff",
-      vastuCompliant: "Vaastu Compliant",
-      securityFireAlarm: "Security / Fire Alarm",
-      visitorParking: "Visitor Parking",
-      gasLine: "Gas Line",
-      wifiCable: "Wi-Fi/Cable",
-    };
-    const amenities = Object.entries(data.amenities || {}).reduce(
-      (acc, [key, value]) => {
-        if (value && amenitiesMap[key]) {
-          acc.push({ icon: "user", label: amenitiesMap[key] });
-        }
-        return acc;
-      },
-      []
-    );
-
-    // Convert otherFeatures object to array
-    const otherFeaturesMap = {
-      separateEntryForServantRoom: "Separate entry for servant room",
-      noOpenDrainageAround: "No open drainage around",
-      petFriendly: "Pet-Friendly",
-      wheelchairFriendly: "Wheelchair friendly",
-      rainWaterHarvesting: "Rain Water Harvesting",
-      cornerProperty: "Corner Property",
-    };
-    const otherFeatures = Object.entries(data.otherFeatures || {}).reduce(
-      (acc, [key, value]) => {
-        if (value && otherFeaturesMap[key]) {
-          acc.push({ icon: "door", label: otherFeaturesMap[key] });
-        }
-        return acc;
-      },
-      []
-    );
-
-    // Convert societyBuildingFeatures object to array
-    const societyFeaturesMap = {
-      swimmingPool: "Swimming Pool",
-      security24x7: "24/7 Security",
-      gymFitnessCentre: "Gym/Fitness Center",
-      shoppingCenter: "Shopping Centre",
-      clubHouse: "Clubhouse",
-      childrensPlayArea: "Children's Play Area",
-      sportsFacilities: "Sports Facilities",
-      joggingWalkingTracks: "Jogging/Walking Tracks",
-      gardenParks: "Garden/Parks",
-      communityHalls: "Community Halls",
-      cinemaRoom: "Cinema Room",
-      libraryReadingRoom: "Library/Reading Room",
-    };
-    const societyFeatures = Object.entries(data.societyBuildingFeatures || {}).reduce(
-      (acc, [key, value]) => {
-        if (value && societyFeaturesMap[key]) {
-          acc.push({ icon: "swimming-pool", label: societyFeaturesMap[key] });
-        }
-        return acc;
-      },
-      []
-    );
-
-    // Convert furnishingDetails object to array
-    const furnishingMap = {
-      fans: "Fans",
-      lights: "Lights",
-      tv: "TV",
-      beds: "Beds",
-      ac: "AC",
-      wardrobes: "Wardrobes",
-      exhaustFans: "Exhaust Fans",
-      curtains: "Curtains/Blinds",
-      floorLamps: "Floor Lamps",
-      diningTable: "Dining Table",
-      sofa: "Sofa",
-      stove: "Stove",
-      kitchenCabinets: "Kitchen Cabinets",
-      chimney: "Chimney",
-      coffeeTable: "Coffee Table",
-      refrigerator: "Refrigerator",
-      microwave: "Microwave",
-      dishwasher: "Dishwasher",
-      waterPurifier: "Water Purifier",
-      washingMachine: "Washing Machine",
-    };
-    const furnishing = Object.entries(data.furnishingDetails || {}).reduce(
-      (acc, [key, value]) => {
-        if (
-          (typeof value === "number" && value > 0) ||
-          (typeof value === "boolean" && value)
-        ) {
-          acc.push({
-            icon: "fan",
-            label: `${typeof value === "number" ? value : 1} ${furnishingMap[key]}`,
-          });
-        }
-        return acc;
-      },
-      []
-    );
-
-    // Convert nearbyPlaces object to array
-    const nearbyPlacesMap = {
-      hospital: "Hospital",
-      school: "School",
-      metro: "Metro Station",
-      mall: "Mall",
-      market: "Market",
-      railway: "Railway Station",
-      airport: "Airport",
-      highway: "Highway",
-      busStation: "Bus Station",
-    };
-    const nearbyPlaces = Object.entries(data.nearbyPlaces || {}).reduce(
-      (acc, [key, value]) => {
-        if (value && nearbyPlacesMap[key]) {
-          acc.push({ icon: "train", label: nearbyPlacesMap[key] });
-        }
-        return acc;
-      },
-      []
-    );
-
-    return {
-      id: data._id,
-      title: `${data.category || "Property"} in ${data.location?.locality || "Unknown"}`,
-      location: [
-        data.location?.houseNumber,
-        data.location?.apartment,
-        data.location?.subLocality,
-        data.location?.locality,
-        data.location?.city,
-        data.location?.state,
-      ]
-        .filter(Boolean)
-        .join(", "),
-      price: data.pricing?.expectedPrice
-        ? `₹${data.pricing.expectedPrice.toLocaleString("en-IN")}`
-        : "Price on Request",
-      pricePerSqft: data.pricing?.PricePerSqft
-        ? `₹${data.pricing.PricePerSqft.toLocaleString("en-IN")} / sqft`
-        : "N/A",
-      isNegotiable: true,
-      tags: [
-        data.category || "Unknown",
-        data.availabilityStatus === "Ready to Move" ? "Ready to Move" : data.availabilityStatus,
-        data.furnishingStatus || "Unfurnished",
-      ].filter(Boolean),
-      features: [
-        {
-          icon: "layout",
-          label: data.about
-            ? `${data.about.bedrooms || 0} BHK & ${data.about.bathrooms || 0} Baths`
-            : "N/A",
-        },
-        {
-          icon: "square",
-          label: data.propertyArea?.carpetArea
-            ? `${data.propertyArea.carpetArea} sq.ft. carpet area`
-            : "N/A",
-        },
-        {
-          icon: "layers",
-          label: data.propertyOnFloor
-            ? `${data.propertyOnFloor} out of ${data.totalFloors || "N/A"} floors`
-            : "N/A",
-        },
-        {
-          icon: "tag",
-          label: data.pricing?.PricePerSqft
-            ? `₹${data.pricing.PricePerSqft.toLocaleString("en-IN")} price per sq.ft.`
-            : "N/A",
-        },
-        {
-          icon: "home",
-          label: data.ageOfProperty
-            ? `${data.ageOfProperty} Year Old Property`
-            : "New Property",
-        },
-      ],
-      owner: {
-        name: data.user?.name || "Unknown Owner",
-        image: "/placeholder.svg?height=80&width=80",
-        rating: data.reviews?.length
-          ? (
-              data.reviews.reduce((sum, r) => sum + (r.rating || 0), 0) /
-              data.reviews.length
-            ).toFixed(1)
-          : 0,
-        reviews: data.reviews?.length || 0,
-        phone: data.user?.mobile || "+91 00000 00000",
-      },
-      description: data.description || "No description available.",
-      images: data.images?.map((img, index) => ({
-        src: img.url || "/placeholder.svg?height=400&width=600",
-        alt: img.name || `Image ${index + 1}`,
-        label: img.name || `Image ${index + 1}`,
-      })) || [],
-      amenities,
-      otherFeatures,
-      societyFeatures,
-      furnishing,
-      propertyDetails: [
-        { label: "Bedrooms", value: data.about?.bedrooms || "N/A" },
-        { label: "Bathrooms", value: data.about?.bathrooms || "N/A" },
-        { label: "Balconies", value: data.about?.balconies || "N/A" },
-        { label: "Total no. of Floor", value: data.totalFloors || "N/A" },
-        { label: "Property on Floor", value: data.propertyOnFloor || "N/A" },
-        { label: "Availability Status", value: data.availabilityStatus || "N/A" },
-        { label: "Available From", value: data.availableFrom ? new Date(data.availableFrom).toLocaleDateString() : "N/A" },
-        { label: "Age of Property", value: data.ageOfProperty ? `${data.ageOfProperty} years` : "N/A" },
-        { label: "Furnishing Status", value: data.furnishingStatus || "N/A" },
-        { label: "Facing", value: data.facing || "N/A" },
-        { label: "Power backup", value: data.powerBackup || "N/A" },
-        { label: "Wheelchair Friendly", value: data.otherFeatures?.wheelchairFriendly ? "Yes" : "No" },
-        { label: "Water Source", value: data.waterSource || "N/A" },
-        { label: "Width of facing road", value: data.roadWidth || "N/A" },
-        { label: "Type of flooring", value: data.flooring || "N/A" },
-        { label: "Property ID", value: data._id },
-      ],
-      areaDetails: [
-        {
-          label: "Carpet Area",
-          value: data.propertyArea?.carpetArea ? `${data.propertyArea.carpetArea} Sq.ft.` : "N/A",
-          subValue: data.propertyArea?.carpetArea
-            ? `${(data.propertyArea.carpetArea * 0.092903).toFixed(2)} Sq.m.`
-            : "N/A",
-        },
-        {
-          label: "Built-up Area",
-          value: data.propertyArea?.carpetArea
-            ? `${(data.propertyArea.carpetArea * 1.1).toFixed(0)} Sq.ft.`
-            : "N/A",
-          subValue: data.propertyArea?.carpetArea
-            ? `${(data.propertyArea.carpetArea * 1.1 * 0.092903).toFixed(2)} Sq.m.`
-            : "N/A",
-        },
-        {
-          label: "Super Built-up Area",
-          value: data.propertyArea?.carpetArea
-            ? `${(data.propertyArea.carpetArea * 1.2).toFixed(0)} Sq.ft.`
-            : "N/A",
-          subValue: data.propertyArea?.carpetArea
-            ? `${(data.propertyArea.carpetArea * 1.2 * 0.092903).toFixed(2)} Sq.m.`
-            : "N/A",
-        },
-      ],
-      parking: [
-        { label: "Covered Parking", value: data.parking?.covered || "0" },
-        { label: "Open Parking", value: data.parking?.open || "0" },
-      ],
-      nearbyPlaces,
-      reviews: data.reviews?.map((review) => ({
-        user: {
-          name: review.user?.name || "Anonymous",
-          image: "/placeholder.svg?height=40&width=40",
-          rating: review.rating || 0,
-        },
-        comment: review.comment || "No comment provided.",
-        time: review.createdAt
-          ? new Date(review.createdAt).toLocaleString()
-          : "Unknown time",
-      })) || [],
-      ratingDistribution: {
-        excellent: data.reviews?.length
-          ? Math.round(
-              (data.reviews.filter((r) => r.rating >= 4.5).length /
-                data.reviews.length) *
-                100
-            )
-          : 0,
-        good: data.reviews?.length
-          ? Math.round(
-              (data.reviews.filter((r) => r.rating >= 3.5 && r.rating < 4.5)
-                .length /
-                data.reviews.length) *
-                100
-            )
-          : 0,
-        average: data.reviews?.length
-          ? Math.round(
-              (data.reviews.filter((r) => r.rating >= 2.5 && r.rating < 3.5)
-                .length /
-                data.reviews.length) *
-                100
-            )
-          : 0,
-        belowAverage: data.reviews?.length
-          ? Math.round(
-              (data.reviews.filter((r) => r.rating >= 1.5 && r.rating < 2.5)
-                .length /
-                data.reviews.length) *
-                100
-            )
-          : 0,
-        poor: data.reviews?.length
-          ? Math.round(
-              (data.reviews.filter((r) => r.rating < 1.5).length /
-                data.reviews.length) *
-                100
-            )
-          : 0,
-      },
-    };
-  };
 
   const nextImage = () => {
     setCurrentImageIndex((prevIndex) =>
@@ -455,6 +640,10 @@ export default function PropertyDetails() {
       alert("Failed to submit review.");
       console.error("Error submitting review:", err);
     }
+  };
+
+  const handleImageClick = (image) => {
+    setSelectedImage(image);
   };
 
   const renderTabContent = () => {
@@ -599,14 +788,13 @@ export default function PropertyDetails() {
               {property.images.map((image, index) => (
                 <div
                   key={index}
-                  className="relative rounded-lg overflow-hidden group shadow-sm"
+                  className="relative rounded-lg overflow-hidden group shadow-sm cursor-pointer"
+                  onClick={() => handleImageClick(image)}
                 >
                   <img
                     src={image.src || "/placeholder.svg"}
                     alt={image.alt}
-                    width={200}
-                    height={150}
-                    className="w-full h-32 object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-[200px] object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-2">
                     <div className="text-white text-xs font-medium">
@@ -820,9 +1008,33 @@ export default function PropertyDetails() {
         return <Tag className="h-5 w-5" />;
       case "home":
         return <Clock className="h-5 w-5" />;
+      case "star":
+        return <Star className="h-5 w-5" />;
       default:
         return <Home className="h-5 w-5" />;
     }
+  };
+
+  const ImageModal = ({ image, onClose }) => {
+    if (!image) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
+        <div className="relative max-w-7xl w-full h-full flex items-center justify-center">
+          <img
+            src={image.src || "/placeholder.svg"}
+            alt={image.alt}
+            className="max-h-full max-w-full object-contain"
+          />
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
+          >
+            <X className="h-8 w-8" />
+          </button>
+        </div>
+      </div>
+    );
   };
 
   if (loading) {
@@ -851,7 +1063,7 @@ export default function PropertyDetails() {
           </h1>
           <div className="flex items-center text-sm">
             <span className="text-gray-500">
-              Property ({property.category || "Residential"})
+              Property ({property.propertyType || "N/A"})
             </span>
             <span className="mx-2 text-gray-300">•</span>
             <span className="text-gray-500">{property.propertyType || "Sell"}</span>
@@ -877,8 +1089,7 @@ export default function PropertyDetails() {
                 <img
                   src={property.images[currentImageIndex].src || "/placeholder.svg"}
                   alt={property.images[currentImageIndex].alt}
-                  fill
-                  className="object-cover"
+                  className="w-full h-[500px] object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
                 <button
@@ -1011,8 +1222,8 @@ export default function PropertyDetails() {
                 <Image
                   src={property.owner.image || "/placeholder.svg"}
                   alt={property.owner.name}
-                  width={100}
-                  height={100}
+                  width={120}
+                  height={120}
                   className="rounded-full border-4 border-white shadow-md mb-3"
                 />
                 <h4 className="font-semibold text-lg">{property.owner.name}</h4>
@@ -1027,21 +1238,21 @@ export default function PropertyDetails() {
                 </div>
                 <div className="w-full mt-4 space-y-3">
                   <a
-                    href={`https://wa.me/${property.owner.phone.replace(
+                    href={`https://wa.me/${property.owner.WhatsApp.replace(
                       /\s+/g,
                       ""
                     )}`}
                     className="flex items-center justify-center gap-2 w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-medium"
                   >
                     <WhatsApp className="h-5 w-5" />
-                    <span>{property.owner.phone}</span>
+                    <span>Message on WhatsApp</span>
                   </a>
                   <a
                     href={`tel:${property.owner.phone.replace(/\s+/g, "")}`}
                     className="flex items-center justify-center gap-2 w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
                   >
                     <Phone className="h-5 w-5" />
-                    <span>{property.owner.phone}</span>
+                    <span>Call Owner</span>
                   </a>
                 </div>
                 <div className="w-full mt-5 grid grid-cols-2 gap-3">
@@ -1128,6 +1339,11 @@ export default function PropertyDetails() {
           </div>
         </div>
       )}
+
+      <ImageModal
+        image={selectedImage}
+        onClose={() => setSelectedImage(null)}
+      />
     </div>
   );
 }

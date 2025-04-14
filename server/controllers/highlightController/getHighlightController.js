@@ -17,7 +17,6 @@ exports.getAvailablePropertiesForReel = async (req, res) => {
 
     const availableProperties = await Property.find({
       propertyStatus: "Active",
-      // user: { $ne: userId },
     })
       .populate({
         path: "user",
@@ -31,7 +30,9 @@ exports.getAvailablePropertiesForReel = async (req, res) => {
           select: "name mobile",
         },
       })
-      .select("video user reviews propertyStatus");
+      .select(
+        "video location description pricing user reviews propertyStatus builtUpArea highlights features category bedrooms bathrooms"
+      );
 
     if (!availableProperties.length) {
       return res.status(404).json({
@@ -40,7 +41,7 @@ exports.getAvailablePropertiesForReel = async (req, res) => {
       });
     }
 
-console.log("Availabe properties:", availableProperties);
+    console.log("Available properties:", availableProperties);
 
     const propertiesForReel = availableProperties.map((property) => ({
       propertyId: property._id,
@@ -49,7 +50,29 @@ console.log("Availabe properties:", availableProperties);
         name: property.user.name,
         mobile: property.user.mobile,
       },
-      reviews: property.reviews,
+      location: property.location,
+      description: property.description || "No description available",
+      pricing: property.pricing || [],
+      reviews: property.reviews || [],
+      area: property.builtUpArea
+        ? `${property.builtUpArea.size} ${property.builtUpArea.unit}`
+        : "N/A",
+      tags: property.highlights || property.features || [],
+      category: property.category || "N/A",
+      bedrooms:
+        property.bedrooms ||
+        (property.features?.find((f) => f.toLowerCase().includes("bedroom"))
+          ? parseInt(
+              f.match(/\d+/)?.[0]
+            ) || "N/A"
+          : "N/A"),
+      bathrooms:
+        property.bathrooms ||
+        (property.features?.find((f) => f.toLowerCase().includes("bathroom"))
+          ? parseInt(
+              f.match(/\d+/)?.[0]
+            ) || "N/A"
+          : "N/A"),
     }));
 
     console.log("Properties for reel:", propertiesForReel);
@@ -57,26 +80,14 @@ console.log("Availabe properties:", availableProperties);
     const cloudfrontBaseUrl = process.env.CLOUDFRONT_BASE_URL;
     const s3Base = process.env.S3_BASE_URL;
 
-    // const modifiedProperties = propertiesForReel.map((property) => {
-    //   const video = property.video;
-    //   const relativePath = video.replace(s3Base, "");
-    //   return {
-    //     ...video,
-    //     url: `${cloudfrontBaseUrl}${relativePath}`,
-    //   }
-
-    // })
-
-const modifiedProperties = propertiesForReel.map((property) => {
-  const video = property.video;
-  const relativePath = video.replace(s3Base, ""); // safely strip S3 base URL
-
-  return {
-    ...property,         // keep everything else the same
-    video: `${cloudfrontBaseUrl}${relativePath}`, // only change the video path
-  };
-});
-
+    const modifiedProperties = propertiesForReel.map((property) => {
+      const video = property.video || "";
+      const relativePath = video.replace(s3Base, "");
+      return {
+        ...property,
+        video: video ? `${cloudfrontBaseUrl}${relativePath}` : "",
+      };
+    });
 
     res.status(200).json({
       message: "Available properties fetched successfully for the reel.",

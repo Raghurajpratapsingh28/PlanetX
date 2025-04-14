@@ -22,9 +22,9 @@ exports.getPropertyById = async (req, res) => {
     const property = await Property.findById(propertyId)
       .populate({
         path: "reviews",
-        populate: { path: "user", select: "name number email" },
+        populate: { path: "user", select: "name mobile whatsappMobile email" },
       })
-      .populate("user", "name number email") // Optionally populate user details
+      .populate("user", "name mobile whatsappMobile email") // Optionally populate user details
       .lean();
       console.log(property)
 

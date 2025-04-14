@@ -31,20 +31,30 @@ export default function PropertyVideoPlayer({
     const videoElement = videoRef.current;
     if (!videoElement) return;
 
+    // Reset video state when video source changes
+    videoElement.load(); // This reloads the video source
+    setIsPlaying(true);
+    setProgress(0);
+    setIsLoading(true);
+    
+    // Start playing the new video
+    videoElement.play().catch(() => setIsPlaying(false));
+  }, [video]);
+
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
+
     const updateDuration = () => setDuration(videoElement.duration);
     const updateProgress = () => setProgress((videoElement.currentTime / videoElement.duration) * 100);
     const handleEnded = () => {
-      setIsPlaying(true);
+      setIsPlaying(false);
       videoElement.currentTime = 0;
-      videoElement.play();
     };
     const handleLoadedData = () => setIsLoading(false);
     const handleWaiting = () => setIsLoading(true);
     const handleCanPlay = () => setIsLoading(false);
-    const handlePlay = () => {
-      setIsPlaying(true);
-      onPlay(video.id); // Trigger onPlay callback
-    };
+    const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
 
     videoElement.addEventListener("loadedmetadata", updateDuration);
@@ -56,8 +66,6 @@ export default function PropertyVideoPlayer({
     videoElement.addEventListener("play", handlePlay);
     videoElement.addEventListener("pause", handlePause);
 
-    videoElement.play().catch(() => setIsPlaying(false));
-
     return () => {
       videoElement.removeEventListener("loadedmetadata", updateDuration);
       videoElement.removeEventListener("timeupdate", updateProgress);
@@ -68,43 +76,17 @@ export default function PropertyVideoPlayer({
       videoElement.removeEventListener("play", handlePlay);
       videoElement.removeEventListener("pause", handlePause);
     };
-  }, [video, onPlay]);
-  // Relevant snippet from property-video-player.jsx
-useEffect(() => {
-    const videoElement = videoRef.current;
-    if (!videoElement) return;
-  
-    // ... other event listeners ...
-    const handlePlay = () => {
-      setIsPlaying(true);
-      onPlay(video.id);
-    };
-    const handlePause = () => setIsPlaying(false);
-  
-    videoElement.addEventListener("play", handlePlay);
-    videoElement.addEventListener("pause", handlePause);
-  
-    // ... cleanup ...
-  }, [video, onPlay]);
-
-  useEffect(() => {
-    setIsPlaying(true);
-    setProgress(0);
-    setIsWishlisted(false);
-    setIsLoading(true);
-    if (videoRef.current) {
-      videoRef.current.currentTime = 0;
-      videoRef.current.play().catch(() => setIsPlaying(false));
-    }
-  }, [video]);
+  }, []);
 
   const togglePlay = () => {
     const videoElement = videoRef.current;
     if (!videoElement) return;
 
-    if (isPlaying) videoElement.pause();
-    else videoElement.play();
-    setIsPlaying(!isPlaying);
+    if (isPlaying) {
+      videoElement.pause();
+    } else {
+      videoElement.play().catch(() => setIsPlaying(false));
+    }
   };
 
   const toggleMute = () => {

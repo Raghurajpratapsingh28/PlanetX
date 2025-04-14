@@ -16,6 +16,10 @@ const getNearbyProperties = async (req, res) => {
       return res.status(404).json({ message: "User or user city not found" });
     }
     console.log(user);
+    
+    const cloudfrontBaseUrl = process.env.CLOUDFRONT_BASE_URL;
+    const s3Base = process.env.S3_BASE_URL;
+
     // Find properties matching the user's city
     const nearbyProperties = await Property.find({
       "location.city": user.city,
@@ -29,9 +33,25 @@ const getNearbyProperties = async (req, res) => {
       return res.status(404).json({ message: "No properties found in your city" });
     }
 
+    // Transform image URLs to use CloudFront CDN
+    const modifiedProperties = nearbyProperties.map((property) => {
+      const modifiedImageUrl = property.images?.map((image) => {
+        const relativePath = image.url.replace(s3Base, "");
+        return {
+          ...image,
+          url: `${cloudfrontBaseUrl}${relativePath}`,
+        };
+      }) || [];
+
+      return {
+        ...property,
+        images: modifiedImageUrl,
+      };
+    });
+
     return res.status(200).json({ 
       message: "Properties fetched successfully",
-      nearbyProperties 
+      nearbyProperties: modifiedProperties 
     });
   } catch (error) {
     console.error("Error fetching nearby properties:", error);

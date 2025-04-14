@@ -15,6 +15,7 @@ import {
 import axios from 'axios'
 import { useToast } from '@/hooks/use-toast'
 import BACKEND_URL from '@/lib/BACKEND_URL'
+import { useRouter } from 'next/navigation'
 
 export const NearbyProperties = () => {
   const [properties, setProperties] = useState([])
@@ -23,6 +24,7 @@ export const NearbyProperties = () => {
   const [wishlistLoading, setWishlistLoading] = useState({})
   const [userId, setUserId] = useState(null)
   const { toast } = useToast()
+  const router = useRouter()
 
   // Fetch user ID and wishlist
   useEffect(() => {
@@ -205,20 +207,20 @@ export const NearbyProperties = () => {
                     key={property._id}
                     className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/2 lg:basis-1/3 xl:basis-1/4"
                   >
-                    <Card className="w-full max-w-[295px] mx-auto h-[361px] flex flex-col border border-[#E1E1E1] rounded-xl overflow-hidden">
-                      <div className="relative w-full h-[180px] sm:h-[200px]">
+                    <Card className="w-full max-w-[320px] mx-auto h-[400px] flex flex-col border border-[#E1E1E1] rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
+                      <div className="relative w-full h-[220px]">
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="absolute right-2 top-2 md:right-3 md:top-3 z-10 bg-white/80 hover:bg-white/90 rounded-full w-7 h-7 md:w-8 md:h-8"
+                          className="absolute right-2 top-2 md:right-3 md:top-3 z-10 bg-white/80 hover:bg-white/90 rounded-full w-8 h-8"
                           onClick={() => handleWishlistToggle(property._id)}
                           disabled={wishlistLoading[property._id]}
                         >
                           {wishlistLoading[property._id] ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Loader2 className="h-5 w-5 animate-spin" />
                           ) : (
                             <Heart
-                              className={`h-4 w-4 md:h-5 md:w-5 ${
+                              className={`h-5 w-5 ${
                                 wishlist.includes(property._id)
                                   ? 'text-red-500 fill-red-500'
                                   : 'text-gray-500'
@@ -226,48 +228,47 @@ export const NearbyProperties = () => {
                             />
                           )}
                         </Button>
-                        <img
-                          src={
-                            property.images?.[0]?.url || '/default-property.jpg'
-                          }
+                        <Image
+                          src={property.images?.[0]?.url || '/default-property.jpg'}
                           alt={property.location?.subLocality || 'Property'}
-                          fill
-                          className="object-cover"
+                          width={320}
+                          height={220}
+                          className="w-full h-full object-cover"
+                          priority
                         />
                       </div>
-                      <CardContent className="flex flex-col gap-2 p-3 md:p-4 flex-grow">
-                        <h3 className="font-semibold text-base md:text-lg line-clamp-1">
+                      <CardContent className="flex flex-col gap-3 p-4 flex-grow">
+                        <h3 className="font-semibold text-lg line-clamp-1">
                           {property.location?.subLocality || 'Unnamed Property'}
                         </h3>
-                        <div className="flex flex-col gap-1">
-                          <p className="font-medium text-sm md:text-base">
+                        <div className="flex flex-col gap-2">
+                          <p className="font-medium text-base text-teal-600">
                             {property.category || 'Unknown'}
                           </p>
-                          <div className="flex items-center gap-1 text-gray-500">
-                            <span className="text-xs md:text-sm line-clamp-1">
+                          <div className="flex items-center gap-1 text-gray-600">
+                            <span className="text-sm line-clamp-1">
                               {getLocationString(property.location)}
                             </span>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between mt-2">
+                        <div className="flex items-center justify-between mt-auto">
                           <div>
-                            <p className="font-semibold text-base md:text-lg">
-                              {/* {formatPrice(property.pricing[0])} */}
+                            <p className="font-semibold text-lg">
                               {property?.pricing?.price?.amount
-                            ? `₹${property.pricing.price.amount.toLocaleString(
-                                "en-IN"
-                              )}`
-                            : property?.pricing?.expectedPrice
-                            ? `₹${property.pricing.expectedPrice.toLocaleString(
-                                "en-IN"
-                              )}`
-                            : property?.pricing?.monthlyRent
-                            ? `₹${property.pricing.monthlyRent.toLocaleString(
-                                "en-IN"
-                              )}/mo`
-                            : "Price N/A"}
+                                ? `₹${property.pricing.price.amount.toLocaleString(
+                                    "en-IN"
+                                  )}`
+                                : property?.pricing?.expectedPrice
+                                ? `₹${property.pricing.expectedPrice.toLocaleString(
+                                    "en-IN"
+                                  )}`
+                                : property?.pricing?.monthlyRent
+                                ? `₹${property.pricing.monthlyRent.toLocaleString(
+                                    "en-IN"
+                                  )}/mo`
+                                : "Price N/A"}
                             </p>
-                            <p className="text-xs md:text-sm text-gray-500">
+                            <p className="text-sm text-gray-500">
                               {property.builtUpArea?.size
                                 ? `₹${(
                                     property.pricing[0]?.price?.amount /
@@ -278,8 +279,18 @@ export const NearbyProperties = () => {
                                 : 'N/A'}
                             </p>
                           </div>
-                          <div className="text-xs md:text-sm text-gray-500 text-right">
-                            {property.propertyStatus}
+                          <div className="flex flex-col items-end gap-2">
+                            <div className="text-sm text-gray-500">
+                              {property.propertyStatus}
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-sm bg-teal-50 hover:bg-teal-100 border-teal-200"
+                              onClick={() => router.push(`/show-property/${property._id}`)}
+                            >
+                              View Details
+                            </Button>
                           </div>
                         </div>
                       </CardContent>

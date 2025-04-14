@@ -107,6 +107,7 @@ const basePropertySchema = new Schema(
       highway: { type: Boolean, default: false },
       busStation: { type: Boolean, default: false }
     },
+    furnishingDetails: [{ type: String, required: false }],
     
     
 
