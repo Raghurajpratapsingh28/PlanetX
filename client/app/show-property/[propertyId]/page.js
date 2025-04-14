@@ -57,9 +57,13 @@ export default function PropertyDetails() {
             headers: { Authorization: token },
           }
         );
+        console.log(response);
         const fetchedProperty = response.data.property;
+        console.log(fetchProperty);
+       
         // Transform the data to match the frontend structure
         const transformedProperty = transformPropertyData(fetchedProperty);
+        console.log(transformedProperty)
         setProperty(transformedProperty);
       } catch (err) {
         setError("Failed to fetch property details: " + err.message);

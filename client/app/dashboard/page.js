@@ -294,7 +294,7 @@ export default function DashboardPage() {
               <div className="w-full h-40 relative rounded-xl overflow-hidden">
                 <Image
                   src={property.image || "/images/placeholder.jpg"}
-                  alt={property.name}
+                  alt={property.location.city}
                   layout="fill"
                   objectFit="cover"
                   className="transition-transform duration-300 hover:scale-105"
