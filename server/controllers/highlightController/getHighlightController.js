@@ -2,7 +2,7 @@ const Property = require("../../modals/PropertyModals/BasePropertySchema");
 const User = require("../../modals/Users");
 
 exports.getAvailablePropertiesForReel = async (req, res) => {
-  const { userId } = req.user.userId;
+  const { userId } = req.user;
 
   if (!userId) {
     return res.status(400).json({ error: "User ID is required." });
@@ -17,7 +17,7 @@ exports.getAvailablePropertiesForReel = async (req, res) => {
 
     const availableProperties = await Property.find({
       propertyStatus: "Active",
-      user: { $ne: userId },
+      // user: { $ne: userId },
     })
       .populate({
         path: "user",
@@ -40,6 +40,8 @@ exports.getAvailablePropertiesForReel = async (req, res) => {
       });
     }
 
+console.log("Availabe properties:", availableProperties);
+
     const propertiesForReel = availableProperties.map((property) => ({
       propertyId: property._id,
       video: property.video,
@@ -50,9 +52,35 @@ exports.getAvailablePropertiesForReel = async (req, res) => {
       reviews: property.reviews,
     }));
 
+    console.log("Properties for reel:", propertiesForReel);
+
+    const cloudfrontBaseUrl = process.env.CLOUDFRONT_BASE_URL;
+    const s3Base = process.env.S3_BASE_URL;
+
+    // const modifiedProperties = propertiesForReel.map((property) => {
+    //   const video = property.video;
+    //   const relativePath = video.replace(s3Base, "");
+    //   return {
+    //     ...video,
+    //     url: `${cloudfrontBaseUrl}${relativePath}`,
+    //   }
+
+    // })
+
+const modifiedProperties = propertiesForReel.map((property) => {
+  const video = property.video;
+  const relativePath = video.replace(s3Base, ""); // safely strip S3 base URL
+
+  return {
+    ...property,         // keep everything else the same
+    video: `${cloudfrontBaseUrl}${relativePath}`, // only change the video path
+  };
+});
+
+
     res.status(200).json({
       message: "Available properties fetched successfully for the reel.",
-      properties: propertiesForReel,
+      properties: modifiedProperties,
     });
   } catch (error) {
     console.error("Error fetching available properties for reel:", error);

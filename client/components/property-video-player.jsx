@@ -25,6 +25,8 @@ export default function PropertyVideoPlayer({
   const videoRef = useRef(null);
   const containerRef = useRef(null);
 
+  // console.log("Video URL", video[0].video);
+
   useEffect(() => {
     const videoElement = videoRef.current;
     if (!videoElement) return;
@@ -162,13 +164,13 @@ useEffect(() => {
       <video
         ref={videoRef}
         className="w-full h-[100dvh] sm:h-full object-cover sm:object-contain"
-        poster={video.thumbnailUrl}
+        poster={video}
         onClick={togglePlay}
         muted={isMuted}
         playsInline
         aria-label="Property video"
       >
-        <source src={video.videoUrl} type="video/mp4" />
+        <source src={video} type="video/mp4" />
         Your browser does not support the video tag.
       </video>
 
@@ -180,14 +182,14 @@ useEffect(() => {
       )}
 
       {/* Top gradient with title (hidden on mobile) */}
-      <div className="hidden sm:block absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/80 to-transparent">
+      {/* <div className="hidden sm:block absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/80 to-transparent">
         <h3 className="text-white font-semibold text-xl md:text-2xl truncate">{video.title}</h3>
-      </div>
+      </div> */}
 
       {/* Mobile title overlay */}
-      <div className="sm:hidden absolute bottom-16 left-4 right-4">
+      {/* <div className="sm:hidden absolute bottom-16 left-4 right-4">
         <h3 className="text-white font-semibold text-lg drop-shadow-md line-clamp-2">{video.title}</h3>
-      </div>
+      </div> */}
 
       {/* Action buttons */}
       <div className="absolute right-4 flex top-[10%] sm:top-4 flex-col sm:flex-row gap-2 sm:gap-3">
