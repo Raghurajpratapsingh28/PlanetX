@@ -362,7 +362,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex flex-wrap items-center gap-3 mt-3">
                   <motion.a
-                    href={`/property/${property._id}`}
+                    href={`/show-property/${property._id}`}
                     whileHover={{ scale: 1.05 }}
                     className="text-purple-600 flex items-center gap-1 hover:underline text-sm"
                   >

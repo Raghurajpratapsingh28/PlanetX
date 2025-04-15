@@ -129,7 +129,7 @@ const WishListPage = () => {
   });
 
   const handleViewProperty = (propertyId) => {
-    router.push(`/property/${propertyId}`);
+    router.push(`/show-property/${propertyId}`);
   };
 
   const getFullAddress = (location) =>

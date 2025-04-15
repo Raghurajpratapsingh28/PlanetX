@@ -8,7 +8,7 @@ import axios from "axios";
 import BACKEND_URL from "@/lib/BACKEND_URL";
 import { useSearchParams } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
-import Link from "next/link"; // Added for navigation
+import Link from "next/link";
 
 const MainCard = () => {
   const [propertyData, setPropertyData] = useState([]);
@@ -159,9 +159,34 @@ const MainCard = () => {
   const getAverageRating = (reviews) =>
     reviews?.length > 0
       ? (
-          reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length
+          reviews.reduce((sum, r) => sum + (r.stars || 0), 0) / reviews.length
         ).toFixed(1)
       : null;
+
+  const renderStars = (rating) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+
+    for (let i = 0; i < 5; i++) {
+      if (i < fullStars) {
+        stars.push(
+          <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+        );
+      } else if (i === fullStars && hasHalfStar) {
+        stars.push(
+          <Star
+            key={i}
+            className="h-4 w-4 fill-yellow-400 text-yellow-400"
+            style={{ clipPath: "inset(0 50% 0 0)" }}
+          />
+        );
+      } else {
+        stars.push(<Star key={i} className="h-4 w-4 text-gray-300" />);
+      }
+    }
+    return stars;
+  };
 
   return (
     <section className="flex-1 p-6 max-w-full bg-gray-50">
@@ -194,143 +219,145 @@ const MainCard = () => {
           </p>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-1">
-            {filteredProperties.map((property) => (
-              <article
-                key={property._id}
-                className="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col md:flex-row gap-5 shadow-sm hover:shadow-xl transition-all duration-300"
-              >
-                {/* Image */}
-                <div className="relative w-full md:w-72 h-56 flex-shrink-0 rounded-xl overflow-hidden">
-                  <img
-                    src={property.images?.[0]?.url || "/default-property.jpg"}
-                    alt={property.location.subLocality || "Property"}
-                    className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-3 right-3 bg-white/90 hover:bg-white rounded-full transition-all duration-200"
-                    onClick={() => handleWishlistToggle(property._id)}
-                    disabled={wishlistLoading[property._id]}
-                  >
-                    {wishlistLoading[property._id] ? (
-                      <Loader2 className="h-6 w-6 text-gray-500 animate-spin" />
-                    ) : (
-                      <Heart
-                        className={`h-6 w-6 transition-all duration-200 ${
-                          wishlist.includes(property._id)
-                            ? "text-red-500 fill-red-500"
-                            : "text-gray-500 hover:text-red-500"
-                        }`}
-                      />
-                    )}
-                  </Button>
-                </div>
-
-                {/* Details */}
-                <div className="flex-1 flex flex-col justify-between">
-                  <div>
-                    <div className="flex flex-col md:flex-row justify-between gap-3">
-                      <div className="flex-1">
-                        <h3 className="text-xl font-semibold text-gray-900 truncate">
-                          {property.location.subLocality},{" "}
-                          {property.location.locality}
-                        </h3>
-                        <p className="text-sm text-gray-500 line-clamp-2 mt-1">
-                          {getFullAddress(property.location)}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        {property.reviews?.length > 0 ? (
-                          <>
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span className="text-sm font-medium text-gray-700">
-                              {getAverageRating(property.reviews)} (
-                              {property.reviews.length})
-                            </span>
-                          </>
-                        ) : (
-                          <span className="text-sm text-gray-500">
-                            No Reviews
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex gap-3 mt-2">
-                      <span className="text-sm text-teal-600 font-medium bg-teal-50 px-2 py-1 rounded-full capitalize">
-                        {property.category || "Unknown"}
-                      </span>
-                      <span className="text-sm text-purple-600 font-medium bg-purple-50 px-2 py-1 rounded-full capitalize">
-                        {property.propertyType || "Unknown"}
-                      </span>
-                    </div>
-
-                    <p className="text-sm text-gray-600 mt-3 line-clamp-2">
-                      {property.description ||
-                        "No description available for this property."}
-                    </p>
-
-                    <div className="mt-4 grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-lg font-semibold text-gray-900">
-                          {property?.pricing?.price?.amount
-                            ? `₹${property.pricing.price.amount.toLocaleString(
-                                "en-IN"
-                              )}`
-                            : property?.pricing?.expectedPrice
-                            ? `₹${property.pricing.expectedPrice.toLocaleString(
-                                "en-IN"
-                              )}`
-                            : property?.pricing?.monthlyRent
-                            ? `₹${property.pricing.monthlyRent.toLocaleString(
-                                "en-IN"
-                              )}/mo`
-                            : "Price N/A"}
-                        </p>
-                        <p className="text-xs text-gray-500">Price</p>
-                      </div>
-                      <div>
-                        <p className="text-lg font-semibold text-gray-900">
-                          {property.area} Sqft
-                        </p>
-                        <p className="text-xs text-gray-500">Carpet Area</p>
-                      </div>
-                    </div>
+            {filteredProperties.map((property) => {
+              const averageRating = getAverageRating(property.reviews);
+              return (
+                <article
+                  key={property._id}
+                  className="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col md:flex-row gap-5 shadow-sm hover:shadow-xl transition-all duration-300"
+                >
+                  {/* Image */}
+                  <div className="relative w-full md:w-72 h-56 flex-shrink-0 rounded-xl overflow-hidden">
+                    <img
+                      src={property.images?.[0]?.url || "/default-property.jpg"}
+                      alt={property.location.subLocality || "Property"}
+                      className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute top-3 right-3 bg-white/90 hover:bg-white rounded-full transition-all duration-200"
+                      onClick={() => handleWishlistToggle(property._id)}
+                      disabled={wishlistLoading[property._id]}
+                    >
+                      {wishlistLoading[property._id] ? (
+                        <Loader2 className="h-6 w-6 text-gray-500 animate-spin" />
+                      ) : (
+                        <Heart
+                          className={`h-6 w-6 transition-all duration-200 ${
+                            wishlist.includes(property._id)
+                              ? "text-red-500 fill-red-500"
+                              : "text-gray-500 hover:text-red-500"
+                          }`}
+                        />
+                      )}
+                    </Button>
                   </div>
 
-                  <div className="mt-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <p className="text-sm text-green-600 font-medium bg-green-50 px-2 py-1 rounded-full capitalize">
-                      {property.propertyStatus}
-                    </p>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        className="rounded-full bg-green-600 hover:bg-green-700 transition-colors px-4"
-                      >
-                        <MessageCircle className="h-4 w-4 mr-1" />
-                        Chat
-                      </Button>
-                      <Button
-                        size="sm"
-                        className="rounded-full bg-purple-600 hover:bg-purple-700 transition-colors px-4"
-                      >
-                        <Phone className="h-4 w-4 mr-1" />
-                        Call
-                      </Button>
-                      <Link href={`/show-property/${property._id}`}>
+                  {/* Details */}
+                  <div className="flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="flex flex-col md:flex-row justify-between gap-3">
+                        <div className="flex-1">
+                          <h3 className="text-xl font-semibold text-gray-900 truncate">
+                            {property.location.subLocality},{" "}
+                            {property.location.locality}
+                          </h3>
+                          <p className="text-sm text-gray-500 line-clamp-2 mt-1">
+                            {getFullAddress(property.location)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {averageRating ? (
+                            <>
+                              <div className="flex">{renderStars(averageRating)}</div>
+                              <span className="text-sm font-medium text-gray-700">
+                                {averageRating} ({property.reviews.length})
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-sm text-gray-500">
+                              No Reviews
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3 mt-2">
+                        <span className="text-sm text-teal-600 font-medium bg-teal-50 px-2 py-1 rounded-full capitalize">
+                          {property.category || "Unknown"}
+                        </span>
+                        <span className="text-sm text-purple-600 font-medium bg-purple-50 px-2 py-1 rounded-full capitalize">
+                          {property.propertyType || "Unknown"}
+                        </span>
+                      </div>
+
+                      <p className="text-sm text-gray-600 mt-3 line-clamp-2">
+                        {property.description ||
+                          "No description available for this property."}
+                      </p>
+
+                      <div className="mt-4 grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-lg font-semibold text-gray-900">
+                            {property?.pricing?.price?.amount
+                              ? `₹${property.pricing.price.amount.toLocaleString(
+                                  "en-IN"
+                                )}`
+                              : property?.pricing?.expectedPrice
+                              ? `₹${property.pricing.expectedPrice.toLocaleString(
+                                  "en-IN"
+                                )}`
+                              : property?.pricing?.monthlyRent
+                              ? `₹${property.pricing.monthlyRent.toLocaleString(
+                                  "en-IN"
+                                )}/mo`
+                              : "Price N/A"}
+                          </p>
+                          <p className="text-xs text-gray-500">Price</p>
+                        </div>
+                        <div>
+                          <p className="text-lg font-semibold text-gray-900">
+                            {property.area} Sqft
+                          </p>
+                          <p className="text-xs text-gray-500">Carpet Area</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                      <p className="text-sm text-green-600 font-medium bg-green-50 px-2 py-1 rounded-full capitalize">
+                        {property.propertyStatus}
+                      </p>
+                      <div className="flex gap-2">
                         <Button
                           size="sm"
-                          className="rounded-full bg-teal-600 hover:bg-teal-700 transition-colors px-4"
+                          className="rounded-full bg-green-600 hover:bg-green-700 transition-colors px-4"
                         >
-                          View Details
+                          <MessageCircle className="h-4 w-4 mr-1" />
+                          Chat
                         </Button>
-                      </Link>
+                        <Button
+                          size="sm"
+                          className="rounded-full bg-purple-600 hover:bg-purple-700 transition-colors px-4"
+                        >
+                          <Phone className="h-4 w-4 mr-1" />
+                          Call
+                        </Button>
+                        <Link href={`/show-property/${property._id}`}>
+                          <Button
+                            size="sm"
+                            className="rounded-full bg-teal-600 hover:bg-teal-700 transition-colors px-4"
+                          >
+                            View Details
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         )}
       </div>

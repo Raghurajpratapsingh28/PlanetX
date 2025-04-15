@@ -1,4 +1,3 @@
-// page.js
 "use client";
 
 import { useEffect, useState } from "react";
@@ -21,22 +20,23 @@ import {
   Tag,
   Clock,
   Send,
+  Edit,
+  Trash,
 } from "lucide-react";
 import axios from "axios";
 import BACKEND_URL from "@/lib/BACKEND_URL";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 const transformPropertyData = (data) => {
   const category = data.category || "Residential";
 
-  // Convert array-based fields to objects
   const arrayToObject = (arr, map) =>
     arr?.reduce((acc, key) => {
       if (map[key]) acc[key] = true;
       return acc;
     }, {}) || {};
 
-  // Define mappings
   const amenitiesMap = {
     maintenanceStaff: "Maintenance Staff",
     vastuCompliant: "Vaastu Compliant",
@@ -198,7 +198,6 @@ const transformPropertyData = (data) => {
     busStation: "Bus Station",
   };
 
-  // Transform fields
   const amenitiesObj = Array.isArray(data.amenities)
     ? arrayToObject(data.amenities, amenitiesMap)
     : data.amenities || {};
@@ -253,7 +252,6 @@ const transformPropertyData = (data) => {
     []
   );
 
-  // Category-specific logic
   let pricing = {};
   let features = [];
   let propertyDetails = [];
@@ -453,13 +451,13 @@ const transformPropertyData = (data) => {
     ]
       .filter(Boolean)
       .join(", "),
-    price:data.pricing?.expectedPrice
-    ? `₹${data.pricing.expectedPrice.toLocaleString("en-IN")}`
-    : data.pricing?.price?.amount
-    ? `₹${data.pricing.price.amount.toLocaleString("en-IN")}`
-    : data.pricing?.monthlyRent
-    ? `₹${data.pricing.monthlyRent.toLocaleString("en-IN")}/mo`
-    : "Price N/A",
+    price: data.pricing?.expectedPrice
+      ? `₹${data.pricing.expectedPrice.toLocaleString("en-IN")}`
+      : data.pricing?.price?.amount
+      ? `₹${data.pricing.price.amount.toLocaleString("en-IN")}`
+      : data.pricing?.monthlyRent
+      ? `₹${data.pricing.monthlyRent.toLocaleString("en-IN")}/mo`
+      : "Price N/A",
     pricePerSqft: data.pricing.PricePerSqft ? `₹${data.pricing.PricePerSqft.toLocaleString("en-IN")} / sqft` : "N/A",
     isNegotiable: true,
     tags: [category, data.availabilityStatus || "N/A", data.furnishingStatus || "Unfurnished"].filter(Boolean),
@@ -468,7 +466,7 @@ const transformPropertyData = (data) => {
       name: data.user?.name || "Unknown Owner",
       image: "/placeholder.svg?height=80&width=80",
       rating: data.reviews?.length
-        ? (data.reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / data.reviews.length).toFixed(1)
+        ? (data.reviews.reduce((sum, r) => sum + (r.stars || 0), 0) / data.reviews.length).toFixed(1)
         : 0,
       reviews: data.reviews?.length || 0,
       phone: data.user?.mobile || "+91 00000 00000",
@@ -491,30 +489,21 @@ const transformPropertyData = (data) => {
       { label: "Open Parking", value: data.parking?.open || "0" },
     ],
     nearbyPlaces,
-    reviews: data.reviews?.map((review) => ({
-      user: {
-        name: review.user?.name || "Anonymous",
-        image: "/placeholder.svg?height=40&width=40",
-        rating: review.rating || 0,
-      },
-      comment: review.comment || "No comment provided.",
-      time: review.createdAt ? new Date(review.createdAt).toLocaleString() : "Unknown time",
-    })) || [],
     ratingDistribution: {
       excellent: data.reviews?.length
-        ? Math.round((data.reviews.filter((r) => r.rating >= 4.5).length / data.reviews.length) * 100)
+        ? Math.round((data.reviews.filter((r) => r.stars >= 4.5).length / data.reviews.length) * 100)
         : 0,
       good: data.reviews?.length
-        ? Math.round((data.reviews.filter((r) => r.rating >= 3.5 && r.rating < 4.5).length / data.reviews.length) * 100)
+        ? Math.round((data.reviews.filter((r) => r.stars >= 3.5 && r.stars < 4.5).length / data.reviews.length) * 100)
         : 0,
       average: data.reviews?.length
-        ? Math.round((data.reviews.filter((r) => r.rating >= 2.5 && r.rating < 3.5).length / data.reviews.length) * 100)
+        ? Math.round((data.reviews.filter((r) => r.stars >= 2.5 && r.stars < 3.5).length / data.reviews.length) * 100)
         : 0,
       belowAverage: data.reviews?.length
-        ? Math.round((data.reviews.filter((r) => r.rating >= 1.5 && r.rating < 2.5).length / data.reviews.length) * 100)
+        ? Math.round((data.reviews.filter((r) => r.stars >= 1.5 && r.stars < 2.5).length / data.reviews.length) * 100)
         : 0,
       poor: data.reviews?.length
-        ? Math.round((data.reviews.filter((r) => r.rating < 1.5).length / data.reviews.length) * 100)
+        ? Math.round((data.reviews.filter((r) => r.stars < 1.5).length / data.reviews.length) * 100)
         : 0,
     },
   };
@@ -532,10 +521,15 @@ export default function PropertyDetails() {
   const [reviewText, setReviewText] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [userId, setUserId] = useState(null);
+  const [wishlist, setWishlist] = useState([]);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [showShareOptions, setShowShareOptions] = useState(false);
+  const { toast } = useToast();
 
-  // Fetch property data
   useEffect(() => {
-    const fetchProperty = async () => {
+    const fetchPropertyAndReviews = async () => {
       const token = localStorage.getItem("accessToken")?.replace(/^"|"$/g, "");
       if (!token) {
         setError("Please log in to view property details.");
@@ -545,30 +539,134 @@ export default function PropertyDetails() {
 
       try {
         setLoading(true);
-        const response = await axios.get(
+
+        // Decode token to get userId
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const fetchedUserId = payload.userId;
+        setUserId(fetchedUserId);
+
+        // Fetch wishlist
+        const wishlistResponse = await axios.get(
+          `${BACKEND_URL}/wishlist/get-wishlist/${fetchedUserId}`,
+          { headers: { Authorization: token } }
+        );
+        const wishlistProperties =
+          wishlistResponse.data.wishlistsData?.map((item) => item._id) || [];
+        setWishlist(wishlistProperties);
+
+        // Fetch property
+        const propertyResponse = await axios.get(
           `${BACKEND_URL}/properties/getProperty/${propertyId}`,
           {
             headers: { Authorization: token },
           }
         );
-        const fetchedProperty = response.data.property;
-        console.log("Fetched Property:", fetchedProperty); // Fixed typo: fetchProperty -> fetchedProperty
+        const fetchedProperty = propertyResponse.data.property;
         if (!fetchedProperty) {
           throw new Error("No property data returned.");
         }
         const transformedProperty = transformPropertyData(fetchedProperty);
-        console.log("Transformed Property:", transformedProperty);
         setProperty(transformedProperty);
+
+        // Fetch reviews
+        const reviewsResponse = await axios.get(
+          `${BACKEND_URL}/properties/reviews/${propertyId}`,
+          {
+            headers: { Authorization: token },
+          }
+        );
+        setReviews(reviewsResponse.data.reviews || []);
+
       } catch (err) {
-        setError(`Failed to fetch property details: ${err.response?.data?.error || err.message}`);
-        console.error("Error fetching property:", err);
+        setError(`Failed to fetch data: ${err.response?.data?.error || err.message}`);
+        console.error("Error fetching data:", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProperty();
+    fetchPropertyAndReviews();
   }, [propertyId]);
+
+  const handleWishlistToggle = async () => {
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "Please log in to manage your wishlist",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setWishlistLoading(true);
+    const token = localStorage.getItem("accessToken")?.replace(/^"|"$/g, "");
+    const isInWishlist = wishlist.includes(propertyId);
+
+    try {
+      if (isInWishlist) {
+        const response = await axios.delete(
+          `${BACKEND_URL}/wishlist/remove/${propertyId}`,
+          {
+            headers: { Authorization: token },
+          }
+        );
+
+        if (response.status === 200) {
+          setWishlist(wishlist.filter((id) => id !== propertyId));
+          toast({
+            title: "Success",
+            description: "Property removed from wishlist",
+            variant: "success",
+          });
+        }
+      } else {
+        await axios.post(
+          `${BACKEND_URL}/wishlist/add-wishlist`,
+          { userId, propertyIds: [propertyId] },
+          { headers: { Authorization: token } }
+        );
+        setWishlist([...wishlist, propertyId]);
+        toast({
+          title: "Success",
+          description: "Property added to wishlist",
+          variant: "success",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `Failed to ${isInWishlist ? "remove from" : "add to"} wishlist`,
+        variant: "destructive",
+      });
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
+  const handleShare = (platform) => {
+    if (!property) return;
+    
+    const shareUrl = `${window.location.origin}/show-property/${propertyId}`;
+    const shareText = `Check out this property: ${property.title} at ${property.location} for ${property.price}`;
+    
+    let url;
+    switch (platform) {
+      case "whatsapp":
+        url = `https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`;
+        break;
+      case "facebook":
+        url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+        break;
+      case "twitter":
+        url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+        break;
+      default:
+        return;
+    }
+    
+    window.open(url, "_blank");
+    setShowShareOptions(false);
+  };
 
   const nextImage = () => {
     setCurrentImageIndex((prevIndex) =>
@@ -617,28 +715,121 @@ export default function PropertyDetails() {
         `${BACKEND_URL}/properties/add-review`,
         {
           propertyId: propertyId,
-          rating: userRating,
-          comment: reviewText,
+          stars: userRating,
+          text: reviewText,
         },
         {
           headers: { Authorization: token },
         }
       );
       alert("Review submitted successfully!");
-      // Reset form
       setUserRating(0);
       setReviewText("");
-      // Refetch property to update reviews
-      const response = await axios.get(
-        `${BACKEND_URL}/properties/getProperty/${propertyId}`,
+      const [propertyResponse, reviewsResponse] = await Promise.all([
+        axios.get(
+          `${BACKEND_URL}/properties/getProperty/${propertyId}`,
+          {
+            headers: { Authorization: token },
+          }
+        ),
+        axios.get(
+          `${BACKEND_URL}/properties/reviews/${propertyId}`,
+          {
+            headers: { Authorization: token },
+          }
+        ),
+      ]);
+      setProperty(transformPropertyData(propertyResponse.data.property));
+      setReviews(reviewsResponse.data.reviews || []);
+    } catch (err) {
+      alert("Failed to submit review.");
+      console.error("Error submitting review:", err);
+    }
+  };
+
+  const handleEditReview = async (
+    reviewId,
+    currentStars,
+    currentText
+  ) => {
+    const token = localStorage.getItem("accessToken")?.replace(/^"|"$/g, "");
+    if (!token) {
+      alert("Please log in to edit a review.");
+      return;
+    }
+
+    const newText = prompt("Edit your review:", currentText);
+    const newStarsInput = prompt("Edit your rating (1-5):", currentStars);
+    const newStars = parseInt(newStarsInput);
+
+    if (!newText || isNaN(newStars) || newStars < 1 || newStars > 5) {
+      alert("Invalid input. Please provide a valid review and rating (1-5).");
+      return;
+    }
+
+    try {
+      await axios.patch(
+        `${BACKEND_URL}/properties/edit-review/${reviewId}`,
+        {
+          stars: newStars,
+          text: newText,
+        },
         {
           headers: { Authorization: token },
         }
       );
-      setProperty(transformPropertyData(response.data.property));
+      alert("Review updated successfully!");
+      const reviewsResponse = await axios.get(
+        `${BACKEND_URL}/properties/reviews/${propertyId}`,
+        {
+          headers: { Authorization: token },
+        }
+      );
+      setReviews(reviewsResponse.data.reviews || []);
     } catch (err) {
-      alert("Failed to submit review.");
-      console.error("Error submitting review:", err);
+      alert("Failed to update review.");
+      console.error("Error updating review:", err);
+    }
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    const token = localStorage.getItem("accessToken")?.replace(/^"|"$/g, "");
+    if (!token) {
+      alert("Please log in to delete a review.");
+      return;
+    }
+
+    if (!confirm("Are you sure you want to delete this review?")) {
+      return;
+    }
+
+    try {
+      await axios.delete(
+        `${BACKEND_URL}/properties/delete-review/${reviewId}`,
+        {
+          headers: { Authorization: token },
+        }
+      );
+      alert("Review deleted successfully!");
+      const [propertyResponse, reviewsResponse] = await Promise.all([
+        axios.get(
+          `${BACKEND_URL}/properties/getProperty/${propertyId}`,
+          {
+            headers: { Authorization: token },
+          }
+        ),
+        axios.get(
+          `${BACKEND_URL}/properties/reviews/${propertyId}`,
+          {
+            headers: { Authorization: token },
+          }
+        ),
+      ]);
+      setProperty(transformPropertyData(propertyResponse.data.property));
+      setReviews(reviewsResponse.data.reviews || []);
+    } catch (err) {
+      alert("Failed to delete review.");
+      console.error("Error deleting review:", err);
     }
   };
 
@@ -655,7 +846,6 @@ export default function PropertyDetails() {
             <p className="text-sm text-gray-600 mb-8 leading-relaxed">
               {property.description}
             </p>
-
             <h3 className="font-semibold text-lg mb-3">Places Nearby</h3>
             <div className="flex flex-wrap gap-2 mb-8">
               {property.nearbyPlaces.map((place, index) => (
@@ -670,7 +860,6 @@ export default function PropertyDetails() {
                 </div>
               ))}
             </div>
-
             <h3 className="font-semibold text-lg mb-3">Property Details</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               {property.propertyDetails.map((detail, index) => (
@@ -680,7 +869,6 @@ export default function PropertyDetails() {
                 </div>
               ))}
             </div>
-
             <h3 className="font-semibold text-lg mt-6 mb-3">Area of Property</h3>
             <div className="space-y-4 mb-8">
               {property.areaDetails.map((area, index) => (
@@ -696,7 +884,6 @@ export default function PropertyDetails() {
                 </div>
               ))}
             </div>
-
             <h3 className="font-semibold text-lg mt-6 mb-3">Parking</h3>
             <div className="grid grid-cols-2 gap-4">
               {property.parking.map((item, index) => (
@@ -728,7 +915,6 @@ export default function PropertyDetails() {
                 </div>
               ))}
             </div>
-
             <h3 className="font-semibold text-lg mt-6 mb-4">Other Features</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               {property.otherFeatures.map((feature, index) => (
@@ -743,10 +929,7 @@ export default function PropertyDetails() {
                 </div>
               ))}
             </div>
-
-            <h3 className="font-semibold text-lg mt-6 mb-4">
-              Society/Building Features
-            </h3>
+            <h3 className="font-semibold text-lg mt-6 mb-4">Society/Building Features</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {property.societyFeatures.map((feature, index) => (
                 <div
@@ -824,7 +1007,6 @@ export default function PropertyDetails() {
                   Based on {property.owner.reviews} reviews
                 </div>
               </div>
-
               <div className="flex-1 space-y-2 w-full max-w-md">
                 <div className="flex items-center gap-2">
                   <span className="w-24 text-sm font-medium">Excellent</span>
@@ -867,9 +1049,7 @@ export default function PropertyDetails() {
                   <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                     <div
                       className="bg-orange-500 h-full"
-                      style={{
-                        width: `${property.ratingDistribution.belowAverage}%`,
-                      }}
+                      style={{ width: `${property.ratingDistribution.belowAverage}%` }}
                     ></div>
                   </div>
                   <span className="text-xs text-gray-500 w-8 text-right">
@@ -890,11 +1070,8 @@ export default function PropertyDetails() {
                 </div>
               </div>
             </div>
-
-            {/* Review Submission Form */}
             <div className="bg-white border rounded-xl p-6 mb-8 shadow-sm">
               <h3 className="font-semibold text-lg mb-4">Write a Review</h3>
-
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-2">
                   Your Rating
@@ -920,7 +1097,6 @@ export default function PropertyDetails() {
                   ))}
                 </div>
               </div>
-
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-2">
                   Your Review
@@ -932,7 +1108,6 @@ export default function PropertyDetails() {
                   className="w-full border rounded-lg py-3 px-4 h-32 resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 ></textarea>
               </div>
-
               <button
                 onClick={handleSubmitReview}
                 disabled={!userRating || !reviewText.trim()}
@@ -946,48 +1121,57 @@ export default function PropertyDetails() {
                 Submit Review
               </button>
             </div>
-
             <h3 className="font-semibold text-lg mb-4">Recent Reviews</h3>
             <div className="space-y-6">
-              {property.reviews.map((review, index) => (
-                <div
-                  key={index}
-                  className="border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <img
-                      src={review.user.image || "/placeholder.svg"}
-                      alt={review.user.name}
-                      width={48}
-                      height={48}
-                      className="rounded-full border-2 border-white shadow-sm"
-                    />
-                    <div>
-                      <div className="font-medium">{review.user.name}</div>
-                      <div className="flex items-center">
-                        {renderStars(review.user.rating)}
-                        <span className="ml-1 text-sm font-medium">
-                          {review.user.rating}
-                        </span>
+              {reviews.length === 0 ? (
+                <p className="text-sm text-gray-500">No reviews yet.</p>
+              ) : (
+                reviews.map((review) => (
+                  <div
+                    key={review._id}
+                    className="border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-xl font-bold text-gray-600 border-2 border-white shadow-sm">
+                        {(review.user?.name || "Anonymous").slice(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <div className="font-medium">{review.user?.name || "Anonymous"}</div>
+                        <div className="flex items-center">
+                          {renderStars(review.stars)}
+                          <span className="ml-1 text-sm font-medium">
+                            {review.stars}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="ml-auto text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                        {new Date(review.createdAt).toLocaleString()}
                       </div>
                     </div>
-                    <div className="ml-auto text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                      {review.time}
-                    </div>
+                    <p className="text-sm text-gray-700 leading-relaxed mb-3">
+                      {review.text}
+                    </p>
+                    {review.user?._id === userId && (
+                      <div className="flex gap-4 mt-2">
+                        <button
+                          onClick={() => handleEditReview(review._id, review.stars, review.text)}
+                          className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center"
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteReview(review._id)}
+                          className="text-xs text-red-500 hover:text-red-700 font-medium flex items-center"
+                        >
+                          <Trash className="h-4 w-4 mr-1" />
+                          Delete
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <p className="text-sm text-gray-700 leading-relaxed mb-3">
-                    {review.comment}
-                  </p>
-                  <div className="flex gap-4 mt-2">
-                    <button className="text-xs text-purple-600 hover:text-purple-800 font-medium">
-                      Reply
-                    </button>
-                    <button className="text-xs text-red-500 hover:text-red-700 font-medium">
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         );
@@ -1037,6 +1221,55 @@ export default function PropertyDetails() {
     );
   };
 
+  const ShareModal = () => {
+    if (!showShareOptions) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl w-full max-w-sm mx-4 shadow-xl">
+          <div className="flex justify-between items-center p-4 border-b">
+            <h3 className="font-semibold text-lg">Share Property</h3>
+            <button
+              onClick={() => setShowShareOptions(false)}
+              className="text-gray-500 hover:bg-gray-100 p-1.5 rounded-full transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <div className="p-6 flex flex-col gap-4">
+            <button
+              onClick={() => handleShare("whatsapp")}
+              className="flex items-center gap-3 px-4 py-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+            >
+              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.134.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.074-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.099-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.112-5.505 4.49-9.984 9.997-9.984 2.655 0 5.146.984 7.018 2.761a9.835 9.835 0 012.976 7.022c-.112 5.506-4.491 9.984-9.998 9.985zm6.403-1.714c.225.112.471.347.537.694.074.347.074.694-.173 1.103-.248.694-1.255 1.612-2.306 1.761-.571.085-1.213.112-1.996-.15-.446-.149-1.017-.347-1.758-.625-3.493-1.314-5.892-4.427-6.04-4.626-.149-.198-1.213-1.612-1.213-3.074 0-1.314.669-1.961.94-2.258.272-.297.571-.371.792-.371h.372c.198 0 .446-.025.669.446.272.595.892 1.985.892 1.985.025.099.05.198-.025.297-.074.099-.173.198-.347.297-.173.099-.347.297-.495.595-.149.297-.272.595-.149.892.123.297.619 1.016 1.48 1.985 1.115 1.255 2.033 1.612 2.33 1.784.297.173.595.074.792-.074.198-.149.446-.595.669-.892.223-.297.446-.347.669-.248.223.099.892.595 1.985 1.314.892.595 1.389.892 1.612.992z"/>
+              </svg>
+              Share on WhatsApp
+            </button>
+            <button
+              onClick={() => handleShare("facebook")}
+              className="flex items-center gap-3 px-4 py-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+            >
+              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+              Share on Facebook
+            </button>
+            <button
+              onClick={() => handleShare("twitter")}
+              className="flex items-center gap-3 px-4 py-3 bg-sky-100 text-sky-700 rounded-lg hover:bg-sky-200 transition-colors"
+            >
+              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.095 7.14 2.095 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z"/>
+              </svg>
+              Share on Twitter
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -1055,7 +1288,6 @@ export default function PropertyDetails() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* Header */}
       <div className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
           <h1 className="text-xl font-semibold text-gray-800">
@@ -1077,13 +1309,9 @@ export default function PropertyDetails() {
           </div>
         </div>
       </div>
-
-      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Property Images and Details */}
           <div className="lg:col-span-2">
-            {/* Property Image Carousel */}
             <div className="relative rounded-xl overflow-hidden mb-6 shadow-md bg-white">
               <div className="relative aspect-video">
                 <img
@@ -1108,17 +1336,30 @@ export default function PropertyDetails() {
                   {property.images[currentImageIndex].label}
                 </div>
                 <div className="absolute top-4 right-4 flex gap-2">
-                  <button className="bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors">
-                    <Heart className="h-5 w-5 text-red-500" />
+                  <button
+                    onClick={handleWishlistToggle}
+                    disabled={wishlistLoading}
+                    className={`bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors ${
+                      wishlistLoading ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    <Heart
+                      className={`h-5 w-5 ${
+                        wishlist.includes(propertyId)
+                          ? "text-red-500 fill-red-500"
+                          : "text-gray-500"
+                      }`}
+                    />
                   </button>
-                  <button className="bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors">
+                  <button
+                    onClick={() => setShowShareOptions(true)}
+                    className="bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors"
+                  >
                     <Share2 className="h-5 w-5 text-blue-500" />
                   </button>
                 </div>
               </div>
             </div>
-
-            {/* Property Title and Location */}
             <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
               <div className="flex justify-between items-start">
                 <div>
@@ -1134,8 +1375,6 @@ export default function PropertyDetails() {
                   <MoreVertical className="h-5 w-5" />
                 </button>
               </div>
-
-              {/* Price */}
               <div className="flex justify-between items-center mt-4 pb-4 border-b">
                 <div>
                   <div className="flex items-center gap-2">
@@ -1151,8 +1390,6 @@ export default function PropertyDetails() {
                   {property.isNegotiable && "Negotiable"}
                 </div>
               </div>
-
-              {/* Tags */}
               <div className="flex flex-wrap gap-2 mt-4">
                 {property.tags.map((tag, index) => (
                   <span
@@ -1167,8 +1404,6 @@ export default function PropertyDetails() {
                 </button>
               </div>
             </div>
-
-            {/* Features */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
               {property.features.map((feature, index) => (
                 <div
@@ -1184,8 +1419,6 @@ export default function PropertyDetails() {
                 </div>
               ))}
             </div>
-
-            {/* Tabs */}
             <div className="bg-white rounded-t-xl shadow-sm">
               <div className="flex overflow-x-auto scrollbar-hide">
                 {["about", "amenities", "furnishing", "gallery", "review"].map(
@@ -1205,27 +1438,19 @@ export default function PropertyDetails() {
                 )}
               </div>
             </div>
-
-            {/* Tab Content */}
             <div className="bg-white rounded-b-xl shadow-sm p-6 mb-6">
               {renderTabContent()}
             </div>
           </div>
-
-          {/* Right Column - Owner Info */}
           <div>
             <div className="bg-white border rounded-xl p-6 mb-6 shadow-sm sticky top-24">
               <h3 className="text-lg font-semibold mb-4 text-gray-800">
                 Property Owner
               </h3>
               <div className="flex flex-col items-center">
-                <Image
-                  src={property.owner.image || "/placeholder.svg"}
-                  alt={property.owner.name}
-                  width={120}
-                  height={120}
-                  className="rounded-full border-4 border-white shadow-md mb-3"
-                />
+                <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-3xl font-bold text-gray-600 border-4 border-white shadow-md mb-3">
+                  {property.owner.name.slice(0, 2).toUpperCase()}
+                </div>
                 <h4 className="font-semibold text-lg">{property.owner.name}</h4>
                 <div className="flex items-center my-2">
                   {renderStars(property.owner.rating)}
@@ -1255,24 +1480,22 @@ export default function PropertyDetails() {
                     <span>Call Owner</span>
                   </a>
                 </div>
-                <div className="w-full mt-5 grid grid-cols-2 gap-3">
+                <div className="w-full mt-5 grid grid-cols-1 gap-3">
                   <button
                     onClick={() => setShowNotify(true)}
-                    className="border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                    className="border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
                   >
                     Notify
                   </button>
-                  <button className="bg-purple-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
+                  {/* <button className="bg-purple-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
                     View Profile
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Notify Modal */}
       {showNotify && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl w-full max-w-md mx-4 shadow-xl">
@@ -1339,11 +1562,11 @@ export default function PropertyDetails() {
           </div>
         </div>
       )}
-
       <ImageModal
         image={selectedImage}
         onClose={() => setSelectedImage(null)}
       />
+      <ShareModal />
     </div>
   );
 }

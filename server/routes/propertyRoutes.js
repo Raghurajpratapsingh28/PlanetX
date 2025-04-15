@@ -35,6 +35,11 @@ const getFilteredProperty = require("../controllers/propertyControllers/getFilte
 const {
   getPropertyById,
 } = require("../controllers/propertyControllers/getPropertyById");
+const {
+  getReviews,
+} = require("../controllers/propertyControllers/getReviewsController.js"); // New controller
+const { postNotification } = require("../controllers/adminPanelControllers/postNotificationController");
+const { postNotifications } = require("../controllers/propertyControllers/postNotificationController");
 
 const router = express.Router();
 
@@ -70,5 +75,7 @@ router.get("/nearby-properties", getNearbyProperties);
 router.get("/category-properties", getPropertiesByCategory);
 router.get("/notification/:userId", getNotifications);
 router.get("/getProperty/:propertyId", getPropertyById);
+router.get("/reviews/:propertyId", getReviews); // New route
+router.post("/post-notifications",postNotifications);
 
 module.exports = router;

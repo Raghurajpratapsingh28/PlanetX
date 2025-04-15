@@ -305,7 +305,7 @@ export default function Highlights() {
                             <Loader2 className="h-6 w-6 text-gray-500 animate-spin" />
                           ) : (
                             <Heart
-                              className={`h-6 w-6 transition-all duration-200 ${
+                              className={`h-12 w-12 transition-all duration-200 ${
                                 wishlist.includes(currentProperty.propertyId)
                                   ? "text-red-500 fill-red-500"
                                   : "text-gray-500 hover:text-red-500"
@@ -386,7 +386,7 @@ export default function Highlights() {
                         variant="outline"
                         className="w-full text-sm sm:text-base rounded-lg border-teal-600 text-teal-600 hover:bg-teal-50"
                       >
-                        Request Info
+                        Add to Cart
                       </Button>
                     </div>
                   </div>

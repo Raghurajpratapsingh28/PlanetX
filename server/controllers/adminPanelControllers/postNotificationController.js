@@ -3,6 +3,7 @@ const Notification = require("../../modals/Notification");
 
 exports.postNotification = async (req, res) => {
   const { userId, heading, text } = req.body;
+  console.log(req.body);
 
   const role = req.user.role;
   if (role !== "admin") {
