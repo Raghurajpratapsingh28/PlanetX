@@ -330,20 +330,20 @@ const MainCard = () => {
                         {property.propertyStatus}
                       </p>
                       <div className="flex gap-2">
-                        <Button
+                        {/* <Button
                           size="sm"
                           className="rounded-full bg-green-600 hover:bg-green-700 transition-colors px-4"
                         >
                           <MessageCircle className="h-4 w-4 mr-1" />
                           Chat
-                        </Button>
-                        <Button
+                        </Button> */}
+                        {/* <Button
                           size="sm"
                           className="rounded-full bg-purple-600 hover:bg-purple-700 transition-colors px-4"
                         >
                           <Phone className="h-4 w-4 mr-1" />
                           Call
-                        </Button>
+                        </Button> */}
                         <Link href={`/show-property/${property._id}`}>
                           <Button
                             size="sm"
