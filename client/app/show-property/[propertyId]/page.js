@@ -1515,6 +1515,7 @@ export default function PropertyDetails() {
                 </label>
                 <div className="relative">
                   <select className="w-full border rounded-lg py-2.5 px-3 appearance-none pr-8 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <option>Want to Buy</option>
                     <option>Change Photos</option>
                     <option>Wrong Information</option>
                     <option>Property Not Available</option>
