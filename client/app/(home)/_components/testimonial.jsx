@@ -1,185 +1,231 @@
-'use client'
-import React, { useState, useRef } from 'react'
-import Image from 'next/image'
-import { Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react'
+"use client";
 
-const testimonials = [
-  {
-    name: "Priya Sharma",
-    role: "Homebuyer",
-    image: "/placeholder.svg?height=60&width=60",
-    quote: "Finding my dream home was so easy with this platform! The filters and direct communication with owners saved me so much time.",
-    rating: 5
-  },
-  {
-    name: "Rajiv Mehta",
-    role: "Property Owner",
-    image: "/placeholder.svg?height=60&width=60",
-    quote: "I listed my property here, and it was rented out within a week! The process was seamless and hassle-free.",
-    rating: 5
-  },
-  {
-    name: "Rina Patel",
-    role: "Traveler",
-    image: "/placeholder.svg?height=60&width=60",
-    quote: "I used this platform to book a hotel for a family vacation. The process was simple, and the hotel matched exactly what we saw online!",
-    rating: 4
-  }
-]
+import React, { useState, useEffect, useRef } from "react";
+import { Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
+import axios from "axios";
+import BACKEND_URL from "@/lib/BACKEND_URL";
+import { useToast } from "@/hooks/use-toast";
 
 export const Testimonials = () => {
-  const [currentSlide, setCurrentSlide] = useState(0)
-  const scrollContainerRef = useRef(null)
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const scrollContainerRef = useRef(null);
+  const { toast } = useToast();
+
+  // Fetch feedback data
+  useEffect(() => {
+    const fetchFeedbacks = async () => {
+      const token = localStorage.getItem("accessToken")?.replace(/^"|"$/g, "");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const response = await axios.get(`${BACKEND_URL}/centralfeedback`, {
+          headers: { Authorization: token },
+        });
+        if (response.status === 200) {
+          // Filter feedbacks to include only 3, 4, or 5 stars and sort by stars in descending order
+          const filteredAndSortedFeedbacks = (response.data.feedbacks || [])
+            .filter((feedback) => feedback.stars >= 3)
+            .sort((a, b) => b.stars - a.stars);
+          setFeedbacks(filteredAndSortedFeedbacks);
+        }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description:
+            error.response?.data?.error || "Failed to fetch feedback.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeedbacks();
+  }, [toast]);
 
   const nextSlide = () => {
-    if (scrollContainerRef.current) {
-      const newSlide = (currentSlide + 1) % testimonials.length
-      setCurrentSlide(newSlide)
-      const cardWidth = scrollContainerRef.current.children[0].offsetWidth + 20 // dynamic width + gap
+    if (scrollContainerRef.current && feedbacks.length > 0) {
+      const newSlide = (currentSlide + 1) % feedbacks.length;
+      setCurrentSlide(newSlide);
+      const cardWidth = scrollContainerRef.current.children[0].offsetWidth + 16;
       scrollContainerRef.current.scrollTo({
         left: cardWidth * newSlide,
-        behavior: 'smooth'
-      })
+        behavior: "smooth",
+      });
     }
-  }
+  };
 
   const prevSlide = () => {
-    if (scrollContainerRef.current) {
-      const newSlide = (currentSlide - 1 + testimonials.length) % testimonials.length
-      setCurrentSlide(newSlide)
-      const cardWidth = scrollContainerRef.current.children[0].offsetWidth + 20 // dynamic width + gap
+    if (scrollContainerRef.current && feedbacks.length > 0) {
+      const newSlide = (currentSlide - 1 + feedbacks.length) % feedbacks.length;
+      setCurrentSlide(newSlide);
+      const cardWidth = scrollContainerRef.current.children[0].offsetWidth + 16;
       scrollContainerRef.current.scrollTo({
         left: cardWidth * newSlide,
-        behavior: 'smooth'
-      })
+        behavior: "smooth",
+      });
     }
-  }
+  };
 
   const handleDotClick = (index) => {
     if (scrollContainerRef.current) {
-      setCurrentSlide(index)
-      const cardWidth = scrollContainerRef.current.children[0].offsetWidth + 20 // dynamic width + gap
+      setCurrentSlide(index);
+      const cardWidth = scrollContainerRef.current.children[0].offsetWidth + 16;
       scrollContainerRef.current.scrollTo({
         left: cardWidth * index,
-        behavior: 'smooth'
-      })
+        behavior: "smooth",
+      });
     }
-  }
+  };
+
+  // Function to get initials from the user's name
+  const getInitials = (name) => {
+    const words = name.trim().split(" ");
+    if (words.length === 1) {
+      return words[0].slice(0, 2).toUpperCase();
+    }
+    return words
+      .slice(0, 2)
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase();
+  };
 
   return (
-    <section className="flex flex-col items-start py-8 sm:py-12 md:py-16 lg:py-[100px] px-4 sm:px-6 md:px-12 lg:px-[100px] mt-8 md:mt-[80px] bg-[#F5F5FA] w-full">
-      <div className="max-w-[1240px] w-full mx-auto">
+    <section className="relative py-16 md:py-20 lg:py-28 px-4 sm:px-6 md:px-8 lg:px-16 bg-gradient-to-br from-white to-gray-50 w-full">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start mb-6 sm:mb-8 md:mb-[35px] gap-4">
-          <div className="flex flex-col gap-2 md:gap-[5px]">
-            <h2 className="font-poppins font-semibold text-xl sm:text-2xl md:text-3xl lg:text-[32px] leading-tight sm:leading-8 md:leading-10 lg:leading-[50px] text-[#0F0D0D] text-center md:text-left">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-10 md:mb-16 gap-8">
+          <div className="text-center md:text-left">
+            <h2 className="font-poppins font-bold text-3xl md:text-4xl lg:text-5xl text-gray-900 leading-tight tracking-tight">
               What Our Users Say
             </h2>
-            <p className="font-poppins font-medium text-sm sm:text-base md:text-lg leading-6 sm:leading-7 text-[#6C696A] text-center md:text-left">
+            <p className="mt-3 font-poppins font-medium text-base md:text-lg text-gray-500 leading-relaxed">
               Discover why thousands trust us to find their perfect property.
             </p>
           </div>
 
-          <div className="hidden md:flex items-center gap-2 md:gap-[15px] mx-auto md:mx-0">
-            <button
-              onClick={prevSlide}
-              className="p-2 md:p-[10px] bg-white border border-[#E1E1E1] rounded-[9px] hover:bg-gray-50 transition-colors"
-              aria-label="Previous testimonial"
-            >
-              <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-[#6C696A]" />
-            </button>
-            <div className="flex gap-1 md:gap-[6px] items-center">
-              {testimonials.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleDotClick(idx)}
-                  className={`rounded-full transition-all ${idx === currentSlide
-                    ? "w-2 h-2 md:w-2.5 md:h-2.5 bg-[#6C696A]"
-                    : "w-[6px] h-[6px] md:w-[7px] md:h-[7px] bg-[#B1B1B1] opacity-75 hover:opacity-100"
+          {feedbacks.length > 0 && (
+            <div className="hidden md:flex items-center gap-5">
+              <button
+                onClick={prevSlide}
+                className="p-3 bg-white border border-gray-200 rounded-full shadow-sm hover:bg-gray-100 hover:shadow-md transition-all duration-200 ease-in-out"
+                aria-label="Previous testimonial"
+              >
+                <ChevronLeft className="w-6 h-6 text-gray-700" />
+              </button>
+              <div className="flex gap-2">
+                {feedbacks.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleDotClick(idx)}
+                    className={`rounded-full transition-all duration-200 ${
+                      idx === currentSlide
+                        ? "w-3 h-3 bg-gray-900"
+                        : "w-2 h-2 bg-gray-300 hover:bg-gray-400"
                     }`}
-                  aria-label={`Go to testimonial ${idx + 1}`}
-                  aria-current={idx === currentSlide ? 'true' : 'false'}
-                />
-              ))}
+                    aria-label={`Go to testimonial ${idx + 1}`}
+                    aria-current={idx === currentSlide ? "true" : "false"}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={nextSlide}
+                className="p-3 bg-white border border-gray-200 rounded-full shadow-sm hover:bg-gray-100 hover:shadow-md transition-all duration-200 ease-in-out"
+                aria-label="Next testimonial"
+              >
+                <ChevronRight className="w-6 h-6 text-gray-700" />
+              </button>
             </div>
-            <button
-              onClick={nextSlide}
-              className="p-2 md:p-[10px] bg-white border border-[#E1E1E1] rounded-[9px] hover:bg-gray-50 transition-colors"
-              aria-label="Next testimonial"
-            >
-              <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-[#6C696A]" />
-            </button>
-          </div>
+          )}
         </div>
 
         {/* Testimonials */}
-        <div
-          ref={scrollContainerRef}
-          className="flex gap-4 sm:gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 -mx-4 px-4 sm:-mx-6 sm:px-6 md:mx-0 md:px-0 md:overflow-x-hidden"
-        >
-          {testimonials.map((testimonial, idx) => (
-            <div
-              key={idx}
-              className="flex-none w-[300px] sm:w-[340px] md:w-[400px] bg-white border border-[#E1E1E1] rounded-xl p-4 sm:p-6 md:p-[30px] flex flex-col gap-4 sm:gap-6 md:gap-[30px] snap-center"
-            >
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2 md:gap-[10px]">
-                  <div className="relative w-[50px] h-[50px] md:w-[60px] md:h-[60px] rounded-full border border-[#E1E1E1] overflow-hidden">
-                    <Image
-                      src={testimonial.image}
-                      alt={testimonial.name}
-                      fill
-                      className="object-cover"
-                    />
+        {loading ? (
+          <div className="text-center py-16">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-indigo-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600 font-poppins text-lg">Loading feedback...</p>
+          </div>
+        ) : feedbacks.length === 0 ? (
+          <p className="text-center text-gray-600 font-poppins py-16 text-lg font-medium">
+            No feedback available at the moment.
+          </p>
+        ) : (
+          <div
+            ref={scrollContainerRef}
+            className="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 -mx-4 px-4 md:mx-0 md:px-0 md:overflow-x-hidden"
+          >
+            {feedbacks.map((feedback, idx) => (
+              <div
+                key={feedback._id}
+                className="flex-none w-80 sm:w-96 md:w-[28rem] bg-white border border-gray-100 rounded-2xl p-6 md:p-8 flex flex-col gap-6 snap-center shadow-xl hover:shadow-2xl transition-shadow duration-300 bg-opacity-90 backdrop-blur-sm"
+              >
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-indigo-600 flex items-center justify-center text-white font-poppins font-semibold text-lg md:text-xl border border-gray-100 shadow-sm">
+                      {getInitials(feedback.userName)}
+                    </div>
+                    <div>
+                      <h3 className="font-poppins font-semibold text-lg md:text-xl text-gray-900 tracking-tight">
+                        {feedback.userName}
+                      </h3>
+                      <p className="font-poppins text-sm md:text-base text-gray-500 capitalize">
+                        {feedback.feedbackType}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-poppins font-medium text-base sm:text-lg md:text-lg leading-6 sm:leading-7 text-[#0F0D0D]">
-                      {testimonial.name}
-                    </h3>
-                    <p className="font-poppins text-xs sm:text-sm leading-4 sm:leading-5 text-[#6C696A]">
-                      {testimonial.role}
-                    </p>
+                  <div className="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center bg-purple-50 rounded-lg shadow-sm">
+                    <Quote className="w-6 h-6 md:w-8 md:h-8 text-purple-500" />
                   </div>
                 </div>
-                <div className="w-[40px] h-[40px] md:w-[50px] md:h-[50px] flex items-center justify-center bg-[#F2E6FF] rounded-lg">
-                  <Quote className="w-5 h-5 md:w-[30px] md:h-[30px] text-[#7B00FF]" />
-                </div>
-              </div>
 
-              <div className="flex flex-col gap-2 md:gap-[10px]">
-                <p className="font-poppins font-medium text-sm sm:text-base leading-5 sm:leading-[26px] text-[#707070]">
-                  {testimonial.quote}
-                </p>
-                <div className="flex gap-1 md:gap-[5px]">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 ${i < testimonial.rating ? "fill-[#FF9800] text-[#FF9800]" : "fill-[#D2D2D2] text-[#D2D2D2]"
+                <div className="flex flex-col gap-4">
+                  <p className="font-poppins font-medium text-sm md:text-base text-gray-600 leading-relaxed line-clamp-4">
+                    {feedback.content}
+                  </p>
+                  <div className="flex gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-5 h-5 md:w-6 md:h-6 ${
+                          i < feedback.stars
+                            ? "fill-yellow-500 text-yellow-500"
+                            : "fill-gray-200 text-gray-200"
                         }`}
-                    />
-                  ))}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Mobile Navigation */}
-        <div className="flex md:hidden justify-center items-center gap-1 md:gap-[6px] mt-4">
-          {testimonials.map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => handleDotClick(idx)}
-              className={`rounded-full transition-all ${idx === currentSlide
-                ? "w-2 h-2 md:w-2.5 md:h-2.5 bg-[#6C696A]"
-                : "w-[6px] h-[6px] md:w-[7px] md:h-[7px] bg-[#B1B1B1] opacity-75 hover:opacity-100"
+        {feedbacks.length > 0 && (
+          <div className="flex md:hidden justify-center items-center gap-2 mt-6">
+            {feedbacks.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleDotClick(idx)}
+                className={`rounded-full transition-all duration-200 ${
+                  idx === currentSlide
+                    ? "w-3 h-3 bg-gray-900"
+                    : "w-2 h-2 bg-gray-300 hover:bg-gray-400"
                 }`}
-              aria-label={`Go to testimonial ${idx + 1}`}
-              aria-current={idx === currentSlide ? 'true' : 'false'}
-            />
-          ))}
-        </div>
+                aria-label={`Go to testimonial ${idx + 1}`}
+                aria-current={idx === currentSlide ? "true" : "false"}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
-  )
-}
+  );
+};

@@ -31,7 +31,7 @@ const officeSchema = new Schema(
       },
       furnishedStatus: {
         type: String,
-        enum: ["Fully Furnished", "Semi-Furnished", "Unfurnished"],
+        enum: ["Fully Furnished", "Semi Furnished", "Unfurnished"],
         required: false,
       },
       furnishingDetails: {

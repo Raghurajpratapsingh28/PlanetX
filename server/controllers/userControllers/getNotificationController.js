@@ -2,11 +2,11 @@ const Notification = require("../../modals/Notification");
 
 exports.getNotifications = async (req, res) => {
   const { userId } = req.params;
-
   try {
-    const notifications = await Notification.find({ userId }).sort({
-      date: -1,
-    });
+    const notifications = await Notification.find({ adminId: userId })
+      .populate("userId", "name") // Populate userId with the 'name' field
+      .sort({ date: -1 });
+
 
     if (!notifications.length) {
       return res

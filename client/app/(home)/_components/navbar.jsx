@@ -8,96 +8,115 @@ import { Button } from "@/components/ui/button";
 import { CgProfile } from "react-icons/cg";
 import { Bell, ChevronDown, Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
+import BACKEND_URL from "@/lib/BACKEND_URL";
+import { formatDistanceToNow } from "date-fns";
 
 export const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("accessToken")?.replace(/^"|"$/g, "");
     setIsLoggedIn(!!token);
+
+    if (token) {
+      // Fetch user data
+      const fetchUserData = async () => {
+        try {
+          const userResponse = await axios.get(`${BACKEND_URL}/auth/get-user`, {
+            headers: { Authorization: token },
+          });
+          setUser(userResponse.data.user);
+          
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      };
+
+      // Fetch notifications
+      const fetchNotifications = async () => {
+        try {
+          setLoading(true);
+          const userResponse = await axios.get(`${BACKEND_URL}/auth/get-user`, {
+            headers: { Authorization: token },
+          });
+          const userId = userResponse.data.user._id;
+          const response = await axios.get(
+            `${BACKEND_URL}/properties/notification/${userId}`,
+            { headers: { Authorization: token } }
+          );
+          // Only update state if notifications have changed
+          setNotifications((prev) => {
+            const prevIds = prev.map((n) => n._id);
+            const newNotifications = response.data || [];
+            const newIds = newNotifications.map((n) => n._id);
+            if (JSON.stringify(prevIds) !== JSON.stringify(newIds)) {
+              return newNotifications;
+            }
+            return prev;
+          });
+          
+        } catch (error) {
+          if(error.response.data.message === "No notifications found for this user."){return}
+          console.error("Error fetching notifications:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchUserData();
+      fetchNotifications();
+
+      // Set up polling for notifications every 30 seconds
+      const intervalId = setInterval(fetchNotifications, 10000);
+
+      // Cleanup interval on component unmount
+      return () => clearInterval(intervalId);
+    }
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("accessToken");
     setIsLoggedIn(false);
+    setUser(null);
+    setNotifications([]);
     setUserMenuOpen(false);
     setMobileMenuOpen(false);
     setNotificationsOpen(false);
     router.push("/login");
   };
 
+  const getInitials = (name) => {
+    if (!name) return "";
+    const words = name.trim().split(" ").filter(Boolean);
+    const initials = words
+      .slice(0, 2)
+      .map((word) => word[0]?.toUpperCase())
+      .join("");
+    return initials || "";
+  };
+
+  const firstName = user?.name?.split(" ")[0] || "User";
+
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/show-property", label: "All Properties" },
-    { 
-      href: "/dashboard/add-property", 
-      label: "Post Property",
-      badge: "FREE"
-    },
+    { href: "/dashboard/add-property", label: "Post Property", badge: "FREE" },
     { href: "/highlights", label: "Highlights" },
     { href: "/dashboard/wishlist", label: "Wishlist" },
-  ];
-
-  const dummyNotifications = [
-    {
-      id: 1,
-      message: "New property added to your wishlist!",
-      time: "2 hours ago",
-      unread: true
-    },
-    {
-      id: 2,
-      message: "Your property post has been approved.",
-      time: "Yesterday",
-      unread: false
-    },
-    {
-      id: 3,
-      message: "Price drop alert for Beachfront Villa.",
-      time: "2 days ago",
-      unread: false
-    },
-    {
-      id: 4,
-      message: "Price drop alert for Beachfront Villa.",
-      time: "2 days ago",
-      unread: false
-    },
-    {
-      id: 5,
-      message: "Price drop alert for Beachfront Villa.",
-      time: "2 days ago",
-      unread: false
-    },
-    {
-      id: 6,
-      message: "Price drop alert for Beachfront Villa.",
-      time: "2 days ago",
-      unread: false
-    },
-    {
-      id: 7,
-      message: "Price drop alert for Beachfront Villa.",
-      time: "2 days ago",
-      unread: false
-    },
-    {
-      id: 8,
-      message: "Price drop alert for Beachfront Villa.",
-      time: "2 days ago",
-      unread: false
-    }
   ];
 
   return (
     <nav className="w-full border-b border-[#E1E1E1] bg-gradient-to-r from-white to-gray-50 sticky top-0 z-50 shadow-sm">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-3 transition-transform hover:scale-105">
               <Image
@@ -113,7 +132,6 @@ export const Navbar = () => {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8 text-[#0F0D0D]">
             {navLinks.map((link) => (
               <Link
@@ -131,7 +149,6 @@ export const Navbar = () => {
             ))}
           </div>
 
-          {/* Desktop & Mobile User Section */}
           <div className="flex items-center gap-2 md:gap-4 relative">
             {isLoggedIn ? (
               <>
@@ -143,23 +160,40 @@ export const Navbar = () => {
                     onClick={() => setNotificationsOpen(!notificationsOpen)}
                   >
                     <Bell className="h-5 w-5" />
-                    {/* <span className="absolute w-3 h-3 bg-[#4CAF50] rounded-full right-2 top-2 border-2 border-white animate-ping" /> */}
                   </Button>
                   {notificationsOpen && (
                     <div className="absolute top-full right-0 mt-3 w-80 bg-white border rounded-xl shadow-xl animate-in fade-in-0 duration-200 max-h-[400px] overflow-y-auto md:w-96">
                       <div className="p-4 border-b">
                         <h3 className="font-semibold text-lg">Notifications</h3>
                       </div>
-                      {dummyNotifications.length > 0 ? (
-                        dummyNotifications.map((notification) => (
+                      {loading ? (
+                        <div className="p-4 text-center text-gray-500">
+                          Loading notifications...
+                        </div>
+                      ) : notifications.length > 0 ? (
+                        notifications.map((notification) => (
                           <div
-                            key={notification.id}
+                            key={notification._id}
                             className={`p-4 border-b last:border-b-0 hover:bg-gray-50 transition-colors ${
                               notification.unread ? "bg-gray-50" : ""
                             }`}
                           >
-                            <p className="text-sm text-gray-800">{notification.message}</p>
-                            <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+                            <p className="text-sm font-semibold text-gray-800">
+                              {notification.heading}
+                            </p>
+                            <p className="text-sm text-gray-800">
+                              {notification.text}
+                            </p>
+                            <div className="flex justify-between items-center mt-1">
+                              <p className="text-xs text-gray-500">
+                                From: {notification.userId?.name || "Unknown User"}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {formatDistanceToNow(new Date(notification.date), {
+                                  addSuffix: true,
+                                })}
+                              </p>
+                            </div>
                           </div>
                         ))
                       ) : (
@@ -175,8 +209,12 @@ export const Navbar = () => {
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
                     className="flex items-center gap-3 p-2 rounded-full hover:bg-gray-100/50 transition-all duration-300"
                   >
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#CED5D8] to-[#A1A8AB] shadow-inner" />
-                    <span className="font-semibold hidden lg:block text-gray-800">User</span>
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#CED5D8] to-[#A1A8AB] flex items-center justify-center text-white font-semibold text-lg shadow-inner">
+                      {getInitials(user?.name)}
+                    </div>
+                    <span className="font-semibold hidden lg:block text-gray-800">
+                      {firstName}
+                    </span>
                     <ChevronDown className="h-5 w-5 text-gray-600" />
                   </button>
                   {userMenuOpen && (
@@ -212,7 +250,6 @@ export const Navbar = () => {
                 <span className="text-white text-sm font-semibold">Login</span>
               </Link>
             )}
-            {/* Mobile Menu Button */}
             <div className="md:hidden">
               <Button
                 variant="ghost"
@@ -230,7 +267,6 @@ export const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden py-6 bg-white border-t animate-in slide-in-from-top-5">
             <div className="flex flex-col gap-4">
@@ -252,8 +288,10 @@ export const Navbar = () => {
               {isLoggedIn ? (
                 <div className="space-y-2 px-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#CED5D8] to-[#A1A8AB]" />
-                    <span className="font-semibold text-lg">User</span>
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#CED5D8] to-[#A1A8AB] flex items-center justify-center text-white font-semibold text-lg">
+                      {getInitials(user?.name)}
+                    </div>
+                    <span className="font-semibold text-lg">{firstName}</span>
                   </div>
                   <Link
                     href="/dashboard/profile"

@@ -1,23 +1,92 @@
-// feedback/page.js
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useToast } from "@/hooks/use-toast";
+import BACKEND_URL from "@/lib/BACKEND_URL";
 
 const FeedBackPage = () => {
   const [feedbackType, setFeedbackType] = useState("");
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const { toast } = useToast();
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken")?.replace(/^"|"$/g, "");
+    if (!token) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to submit feedback.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitted(true);
-    setTimeout(() => {
-      setFeedbackType("");
-      setRating(0);
-      setComment("");
-      setIsSubmitted(false);
-    }, 2000);
+    const token = localStorage.getItem("accessToken")?.replace(/^"|"$/g, "");
+    if (!token) {
+      toast({
+        title: "Error",
+        description: "Please log in to submit feedback.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!feedbackType || !rating || !comment) {
+      toast({
+        title: "Error",
+        description: "All fields are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await axios.post(
+        `${BACKEND_URL}/centralfeedback`,
+        {
+          feedbackType,
+          stars: rating,
+          content: comment,
+        },
+        {
+          headers: { Authorization: token },
+        }
+      );
+
+      if (response.status === 201) {
+        setIsSubmitted(true);
+        toast({
+          title: "Success",
+          description: "Feedback submitted successfully!",
+          variant: "success",
+        });
+        setTimeout(() => {
+          setFeedbackType("");
+          setRating(0);
+          setComment("");
+          setIsSubmitted(false);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("Feedback submission error:", {
+        message: error.message,
+        response: error.response?.data,
+      });
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.error || "Failed to submit feedback.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -27,7 +96,7 @@ const FeedBackPage = () => {
           Share Your Feedback
         </h2>
         <p className="text-gray-600 text-sm md:text-base mb-8 leading-relaxed">
-          We Value Your Feedback! Your insights help us enhance our services and
+          We value your feedback! Your insights help us enhance our services and
           deliver the best experience tailored for you.
         </p>
 
@@ -40,21 +109,15 @@ const FeedBackPage = () => {
               value={feedbackType}
               onChange={(e) => setFeedbackType(e.target.value)}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-700 bg-white transition-all duration-200"
+              disabled={isSubmitting}
             >
-              <option value="" disabled className="text-gray-400">
+              <option value="" disabled>
                 Select an option
               </option>
-              <option value="other" className="text-gray-900">
-                Other
-              </option>
+              <option value="website">Website Experience</option>
+              <option value="service">Service Quality</option>
+              <option value="other">Other</option>
             </select>
-            {feedbackType === "other" && (
-              <input
-                type="text"
-                placeholder="Specify other"
-                className="w-full p-3 mt-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-              />
-            )}
           </div>
 
           <div>
@@ -72,6 +135,7 @@ const FeedBackPage = () => {
                       ? "text-yellow-500"
                       : "text-gray-300 hover:text-yellow-400"
                   } transition-colors duration-200`}
+                  disabled={isSubmitting}
                 >
                   ★
                 </button>
@@ -88,14 +152,20 @@ const FeedBackPage = () => {
               onChange={(e) => setComment(e.target.value)}
               placeholder="Describe your experience here"
               className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent h-32 resize-none text-gray-700 bg-white transition-all duration-200"
+              disabled={isSubmitting}
             ></textarea>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white p-3 rounded-lg hover:from-purple-700 hover:to-purple-900 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-1"
+            className={`w-full p-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-1 ${
+              isSubmitting
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-gradient-to-r from-purple-600 to-purple-800 text-white hover:from-purple-700 hover:to-purple-900"
+            }`}
+            disabled={isSubmitting}
           >
-            Submit Feedback
+            {isSubmitting ? "Submitting..." : "Submit Feedback"}
           </button>
         </form>
 

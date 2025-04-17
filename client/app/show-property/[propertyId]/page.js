@@ -27,6 +27,7 @@ import axios from "axios";
 import BACKEND_URL from "@/lib/BACKEND_URL";
 import { useParams } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { formatDistanceToNow } from "date-fns";
 
 const transformPropertyData = (data) => {
   const category = data.category || "Residential";
@@ -526,6 +527,8 @@ export default function PropertyDetails() {
   const [wishlist, setWishlist] = useState([]);
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [showShareOptions, setShowShareOptions] = useState(false);
+  const [notificationTitle, setNotificationTitle] = useState("");
+  const [notificationText, setNotificationText] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -536,24 +539,34 @@ export default function PropertyDetails() {
         setLoading(false);
         return;
       }
-
+  
       try {
         setLoading(true);
-
+  
         // Decode token to get userId
         const payload = JSON.parse(atob(token.split('.')[1]));
         const fetchedUserId = payload.userId;
         setUserId(fetchedUserId);
-
+  
         // Fetch wishlist
-        const wishlistResponse = await axios.get(
-          `${BACKEND_URL}/wishlist/get-wishlist/${fetchedUserId}`,
-          { headers: { Authorization: token } }
-        );
-        const wishlistProperties =
-          wishlistResponse.data.wishlistsData?.map((item) => item._id) || [];
+        let wishlistProperties = [];
+        try {
+          const wishlistResponse = await axios.get(
+            `${BACKEND_URL}/wishlist/get-wishlist/${fetchedUserId}`,
+            { headers: { Authorization: token } }
+          );
+          wishlistProperties =
+            wishlistResponse.data.wishlistsData?.map((item) => item._id) || [];
+        } catch (wishlistError) {
+          if (wishlistError.response?.data?.error === "No wishlists found for this user") {
+            // Handle empty wishlist gracefully
+            wishlistProperties = [];
+          } else {
+            throw wishlistError; // Rethrow other errors
+          }
+        }
         setWishlist(wishlistProperties);
-
+  
         // Fetch property
         const propertyResponse = await axios.get(
           `${BACKEND_URL}/properties/getProperty/${propertyId}`,
@@ -567,7 +580,7 @@ export default function PropertyDetails() {
         }
         const transformedProperty = transformPropertyData(fetchedProperty);
         setProperty(transformedProperty);
-
+  
         // Fetch reviews
         const reviewsResponse = await axios.get(
           `${BACKEND_URL}/properties/reviews/${propertyId}`,
@@ -576,7 +589,7 @@ export default function PropertyDetails() {
           }
         );
         setReviews(reviewsResponse.data.reviews || []);
-
+  
       } catch (err) {
         setError(`Failed to fetch data: ${err.response?.data?.error || err.message}`);
         console.error("Error fetching data:", err);
@@ -584,7 +597,7 @@ export default function PropertyDetails() {
         setLoading(false);
       }
     };
-
+  
     fetchPropertyAndReviews();
   }, [propertyId]);
 
@@ -668,6 +681,57 @@ export default function PropertyDetails() {
     setShowShareOptions(false);
   };
 
+  const handleSubmitNotification = async () => {
+    if (!userId) {
+      toast({
+        title: "Error",
+        description: "Please log in to send a notification.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!notificationTitle.trim() || !notificationText.trim()) {
+      toast({
+        title: "Error",
+        description: "Please provide both a title and notification text.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const token = localStorage.getItem("accessToken")?.replace(/^"|"$/g, "");
+    try {
+      await axios.post(
+        `${BACKEND_URL}/properties/post-notifications`,
+        {
+          userId,
+          propertyId,
+          title: notificationTitle,
+          text: notificationText,
+        },
+        {
+          headers: { Authorization: token },
+        }
+      );
+      toast({
+        title: "Success",
+        description: "Notification sent successfully!",
+        variant: "success",
+      });
+      setShowNotify(false);
+      setNotificationTitle("");
+      setNotificationText("");
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err.response?.data?.message || "Failed to send notification.",
+        variant: "destructive",
+      });
+      console.error("Error sending notification:", err);
+    }
+  };
+
   const nextImage = () => {
     setCurrentImageIndex((prevIndex) =>
       prevIndex === property.images.length - 1 ? 0 : prevIndex + 1
@@ -706,7 +770,11 @@ export default function PropertyDetails() {
   const handleSubmitReview = async () => {
     const token = localStorage.getItem("accessToken")?.replace(/^"|"$/g, "");
     if (!token) {
-      alert("Please log in to submit a review.");
+      toast({
+        title: "Error",
+        description: "Please log in to submit a review.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -722,7 +790,11 @@ export default function PropertyDetails() {
           headers: { Authorization: token },
         }
       );
-      alert("Review submitted successfully!");
+      toast({
+        title: "Success",
+        description: "Review submitted successfully!",
+        variant: "success",
+      });
       setUserRating(0);
       setReviewText("");
       const [propertyResponse, reviewsResponse] = await Promise.all([
@@ -742,7 +814,11 @@ export default function PropertyDetails() {
       setProperty(transformPropertyData(propertyResponse.data.property));
       setReviews(reviewsResponse.data.reviews || []);
     } catch (err) {
-      alert("Failed to submit review.");
+      toast({
+        title: "Error",
+        description: "Failed to submit review.",
+        variant: "destructive",
+      });
       console.error("Error submitting review:", err);
     }
   };
@@ -754,7 +830,11 @@ export default function PropertyDetails() {
   ) => {
     const token = localStorage.getItem("accessToken")?.replace(/^"|"$/g, "");
     if (!token) {
-      alert("Please log in to edit a review.");
+      toast({
+        title: "Error",
+        description: "Please log in to edit a review.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -763,7 +843,11 @@ export default function PropertyDetails() {
     const newStars = parseInt(newStarsInput);
 
     if (!newText || isNaN(newStars) || newStars < 1 || newStars > 5) {
-      alert("Invalid input. Please provide a valid review and rating (1-5).");
+      toast({
+        title: "Error",
+        description: "Invalid input. Please provide a valid review and rating (1-5).",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -778,7 +862,11 @@ export default function PropertyDetails() {
           headers: { Authorization: token },
         }
       );
-      alert("Review updated successfully!");
+      toast({
+        title: "Success",
+        description: "Review updated successfully!",
+        variant: "success",
+      });
       const reviewsResponse = await axios.get(
         `${BACKEND_URL}/properties/reviews/${propertyId}`,
         {
@@ -787,7 +875,11 @@ export default function PropertyDetails() {
       );
       setReviews(reviewsResponse.data.reviews || []);
     } catch (err) {
-      alert("Failed to update review.");
+      toast({
+        title: "Error",
+        description: "Failed to update review.",
+        variant: "destructive",
+      });
       console.error("Error updating review:", err);
     }
   };
@@ -795,7 +887,11 @@ export default function PropertyDetails() {
   const handleDeleteReview = async (reviewId) => {
     const token = localStorage.getItem("accessToken")?.replace(/^"|"$/g, "");
     if (!token) {
-      alert("Please log in to delete a review.");
+      toast({
+        title: "Error",
+        description: "Please log in to delete a review.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -810,7 +906,11 @@ export default function PropertyDetails() {
           headers: { Authorization: token },
         }
       );
-      alert("Review deleted successfully!");
+      toast({
+        title: "Success",
+        description: "Review deleted successfully!",
+        variant: "success",
+      });
       const [propertyResponse, reviewsResponse] = await Promise.all([
         axios.get(
           `${BACKEND_URL}/properties/getProperty/${propertyId}`,
@@ -828,71 +928,72 @@ export default function PropertyDetails() {
       setProperty(transformPropertyData(propertyResponse.data.property));
       setReviews(reviewsResponse.data.reviews || []);
     } catch (err) {
-      alert("Failed to delete review.");
+      toast({
+        title: "Error",
+        description: "Failed to delete review.",
+        variant: "destructive",
+      });
       console.error("Error deleting review:", err);
     }
   };
 
-  const handleImageClick = (image) => {
-    setSelectedImage(image);
+  const handleImageClick = (index) => {
+    setCurrentImageIndex(index);
+    setSelectedImage(property.images[index]);
   };
 
   const renderTabContent = () => {
     switch (activeTab) {
       case "about":
         return (
-          <div className="py-4">
-            <h3 className="font-semibold text-lg mb-3">Description</h3>
-            <p className="text-sm text-gray-600 mb-8 leading-relaxed">
-              {property.description}
-            </p>
-            <h3 className="font-semibold text-lg mb-3">Places Nearby</h3>
-            <div className="flex flex-wrap gap-2 mb-8">
+          <div className="py-6">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">Description</h3>
+            <p className="text-gray-600 leading-relaxed">{property.description}</p>
+            <h3 className="text-xl font-semibold text-gray-800 mt-8 mb-4">Places Nearby</h3>
+            <div className="flex flex-wrap gap-2">
               {property.nearbyPlaces.map((place, index) => (
                 <div
                   key={index}
-                  className="flex items-center bg-gray-100 rounded-full px-3 py-1.5 text-xs"
+                  className="flex items-center bg-indigo-50 text-indigo-700 rounded-full px-4 py-2 text-sm font-medium"
                 >
-                  <span className="mr-1.5 bg-purple-100 rounded-full p-1 flex items-center justify-center">
-                    <MapPin className="h-3 w-3 text-purple-600" />
-                  </span>
+                  <MapPin className="h-4 w-4 mr-2" />
                   {place.label}
                 </div>
               ))}
             </div>
-            <h3 className="font-semibold text-lg mb-3">Property Details</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <h3 className="text-xl font-semibold text-gray-800 mt-8 mb-4">Property Details</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {property.propertyDetails.map((detail, index) => (
-                <div key={index} className="flex justify-between border-b pb-2">
-                  <span className="text-sm text-gray-600">{detail.label}</span>
-                  <span className="text-sm font-medium">{detail.value}</span>
+                <div key={index} className="flex justify-between py-3 border-b border-gray-100">
+                  <span className="text-gray-600">{detail.label}</span>
+                  <span className="font-medium text-gray-800">{detail.value}</span>
                 </div>
               ))}
             </div>
-            <h3 className="font-semibold text-lg mt-6 mb-3">Area of Property</h3>
-            <div className="space-y-4 mb-8">
+            <h3 className="text-xl font-semibold text-gray-800 mt-8 mb-4">Area of Property</h3>
+            <div className="space-y-4">
               {property.areaDetails.map((area, index) => (
                 <div
                   key={index}
-                  className="flex justify-between bg-gray-50 p-3 rounded-lg"
+                  className="flex justify-between bg-gray-50 p-4 rounded-lg shadow-sm"
                 >
-                  <span className="text-sm text-gray-600">{area.label}</span>
+                  <span className="text-gray-600">{area.label}</span>
                   <div className="text-right">
-                    <div className="text-sm font-medium">{area.value}</div>
-                    <div className="text-xs text-gray-500">{area.subValue}</div>
+                    <div className="font-medium text-gray-800">{area.value}</div>
+                    <div className="text-sm text-gray-500">{area.subValue}</div>
                   </div>
                 </div>
               ))}
             </div>
-            <h3 className="font-semibold text-lg mt-6 mb-3">Parking</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <h3 className="text-xl font-semibold text-gray-800 mt-8 mb-4">Parking</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {property.parking.map((item, index) => (
                 <div
                   key={index}
-                  className="flex justify-between bg-gray-50 p-3 rounded-lg"
+                  className="flex justify-between bg-gray-50 p-4 rounded-lg shadow-sm"
                 >
-                  <span className="text-sm text-gray-600">{item.label}</span>
-                  <span className="text-sm font-medium">{item.value}</span>
+                  <span className="text-gray-600">{item.label}</span>
+                  <span className="font-medium text-gray-800">{item.value}</span>
                 </div>
               ))}
             </div>
@@ -900,46 +1001,46 @@ export default function PropertyDetails() {
         );
       case "amenities":
         return (
-          <div className="py-4">
-            <h3 className="font-semibold text-lg mb-4">Amenities</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          <div className="py-6">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">Amenities</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {property.amenities.map((amenity, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                  className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition-shadow"
                 >
-                  <div className="text-purple-500 bg-purple-50 p-2 rounded-full">
+                  <div className="text-indigo-600 bg-indigo-100 p-2 rounded-full">
                     <MapPin className="h-5 w-5" />
                   </div>
-                  <span className="text-sm font-medium">{amenity.label}</span>
+                  <span className="font-medium text-gray-800">{amenity.label}</span>
                 </div>
               ))}
             </div>
-            <h3 className="font-semibold text-lg mt-6 mb-4">Other Features</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <h3 className="text-xl font-semibold text-gray-800 mt-8 mb-4">Other Features</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {property.otherFeatures.map((feature, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                  className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition-shadow"
                 >
-                  <div className="text-blue-500 bg-blue-50 p-2 rounded-full">
+                  <div className="text-blue-600 bg-blue-100 p-2 rounded-full">
                     <MapPin className="h-5 w-5" />
                   </div>
-                  <span className="text-sm font-medium">{feature.label}</span>
+                  <span className="font-medium text-gray-800">{feature.label}</span>
                 </div>
               ))}
             </div>
-            <h3 className="font-semibold text-lg mt-6 mb-4">Society/Building Features</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mt-8 mb-4">Society/Building Features</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {property.societyFeatures.map((feature, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                  className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition-shadow"
                 >
-                  <div className="text-green-500 bg-green-50 p-2 rounded-full">
+                  <div className="text-green-600 bg-green-100 p-2 rounded-full">
                     <MapPin className="h-5 w-5" />
                   </div>
-                  <span className="text-sm font-medium">{feature.label}</span>
+                  <span className="font-medium text-gray-800">{feature.label}</span>
                 </div>
               ))}
             </div>
@@ -947,18 +1048,18 @@ export default function PropertyDetails() {
         );
       case "furnishing":
         return (
-          <div className="py-4">
-            <h3 className="font-semibold text-lg mb-4">Furnishing Details</h3>
+          <div className="py-6">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">Furnishing Details</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {property.furnishing.map((item, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg"
+                  className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition-shadow"
                 >
-                  <div className="text-amber-500 bg-amber-50 p-2 rounded-full">
+                  <div className="text-amber-600 bg-amber-100 p-2 rounded-full">
                     <MapPin className="h-5 w-5" />
                   </div>
-                  <span className="text-sm font-medium">{item.label}</span>
+                  <span className="font-medium text-gray-800">{item.label}</span>
                 </div>
               ))}
             </div>
@@ -966,26 +1067,21 @@ export default function PropertyDetails() {
         );
       case "gallery":
         return (
-          <div className="py-4">
+          <div className="py-6">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {property.images.map((image, index) => (
                 <div
                   key={index}
-                  className="relative rounded-lg overflow-hidden group shadow-sm cursor-pointer"
-                  onClick={() => handleImageClick(image)}
+                  className="relative rounded-lg overflow-hidden group shadow-md cursor-pointer transform transition-transform hover:scale-105"
+                  onClick={() => handleImageClick(index)}
                 >
                   <img
                     src={image.src || "/placeholder.svg"}
                     alt={image.alt}
-                    className="w-full h-[200px] object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-48 object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-between p-2">
-                    <div className="text-white text-xs font-medium">
-                      {image.label}
-                    </div>
-                    <button className="bg-white rounded-full p-1">
-                      <MoreVertical className="h-4 w-4" />
-                    </button>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                    <span className="text-white text-sm font-medium">{image.label}</span>
                   </div>
                 </div>
               ))}
@@ -994,88 +1090,37 @@ export default function PropertyDetails() {
         );
       case "review":
         return (
-          <div className="py-4">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 bg-gray-50 p-6 rounded-xl">
-              <div className="text-center">
-                <div className="text-5xl font-bold text-purple-600">
-                  {property.owner.rating}
+          <div className="py-6">
+            <div className="bg-white rounded-xl p-6 shadow-md mb-8">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-indigo-600">{property.owner.rating}</div>
+                  <div className="flex justify-center my-2">{renderStars(property.owner.rating)}</div>
+                  <div className="text-sm text-gray-500">Based on {property.owner.reviews} reviews</div>
                 </div>
-                <div className="flex justify-center my-2">
-                  {renderStars(property.owner.rating)}
-                </div>
-                <div className="text-sm text-gray-500">
-                  Based on {property.owner.reviews} reviews
-                </div>
-              </div>
-              <div className="flex-1 space-y-2 w-full max-w-md">
-                <div className="flex items-center gap-2">
-                  <span className="w-24 text-sm font-medium">Excellent</span>
-                  <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="bg-green-500 h-full"
-                      style={{ width: `${property.ratingDistribution.excellent}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-xs text-gray-500 w-8 text-right">
-                    {property.ratingDistribution.excellent}%
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-24 text-sm font-medium">Good</span>
-                  <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="bg-lime-500 h-full"
-                      style={{ width: `${property.ratingDistribution.good}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-xs text-gray-500 w-8 text-right">
-                    {property.ratingDistribution.good}%
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-24 text-sm font-medium">Average</span>
-                  <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="bg-yellow-500 h-full"
-                      style={{ width: `${property.ratingDistribution.average}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-xs text-gray-500 w-8 text-right">
-                    {property.ratingDistribution.average}%
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-24 text-sm font-medium">Below Average</span>
-                  <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="bg-orange-500 h-full"
-                      style={{ width: `${property.ratingDistribution.belowAverage}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-xs text-gray-500 w-8 text-right">
-                    {property.ratingDistribution.belowAverage}%
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-24 text-sm font-medium">Poor</span>
-                  <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div
-                      className="bg-red-500 h-full"
-                      style={{ width: `${property.ratingDistribution.poor}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-xs text-gray-500 w-8 text-right">
-                    {property.ratingDistribution.poor}%
-                  </span>
+                <div className="flex-1 space-y-2 w-full max-w-md">
+                  {[
+                    { label: "Excellent", value: property.ratingDistribution.excellent, color: "bg-green-500" },
+                    { label: "Good", value: property.ratingDistribution.good, color: "bg-lime-500" },
+                    { label: "Average", value: property.ratingDistribution.average, color: "bg-yellow-500" },
+                    { label: "Below Average", value: property.ratingDistribution.belowAverage, color: "bg-orange-500" },
+                    { label: "Poor", value: property.ratingDistribution.poor, color: "bg-red-500" },
+                  ].map((item, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <span className="w-24 text-sm font-medium">{item.label}</span>
+                      <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div className={`${item.color} h-full`} style={{ width: `${item.value}%` }}></div>
+                      </div>
+                      <span className="text-xs text-gray-500 w-8 text-right">{item.value}%</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
-            <div className="bg-white border rounded-xl p-6 mb-8 shadow-sm">
-              <h3 className="font-semibold text-lg mb-4">Write a Review</h3>
+            <div className="bg-white rounded-xl piekzl shadow-md p-6 mb-8">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">Write a Review</h3>
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">
-                  Your Rating
-                </label>
+                <label className="block text-sm font-medium mb-2">Your Rating</label>
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -1087,7 +1132,7 @@ export default function PropertyDetails() {
                       className="focus:outline-none"
                     >
                       <Star
-                        className={`h-8 w-8 ${
+                        className={`h-6 w-6 ${
                           star <= (hoverRating || userRating)
                             ? "text-yellow-400 fill-yellow-400"
                             : "text-gray-300"
@@ -1098,22 +1143,20 @@ export default function PropertyDetails() {
                 </div>
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">
-                  Your Review
-                </label>
+                <label className="block text-sm font-medium mb-2">Your Review</label>
                 <textarea
                   value={reviewText}
                   onChange={(e) => setReviewText(e.target.value)}
                   placeholder="Share your experience with this property..."
-                  className="w-full border rounded-lg py-3 px-4 h-32 resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full border border-gray-200 rounded-lg py-3 px-4 h-32 resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 ></textarea>
               </div>
               <button
                 onClick={handleSubmitReview}
                 disabled={!userRating || !reviewText.trim()}
-                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium ${
+                className={`flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium w-full ${
                   userRating && reviewText.trim()
-                    ? "bg-purple-600 text-white hover:bg-purple-700"
+                    ? "bg-indigo-600 text-white hover:bg-indigo-700"
                     : "bg-gray-200 text-gray-500 cursor-not-allowed"
                 } transition-colors`}
               >
@@ -1121,7 +1164,7 @@ export default function PropertyDetails() {
                 Submit Review
               </button>
             </div>
-            <h3 className="font-semibold text-lg mb-4">Recent Reviews</h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">Recent Reviews</h3>
             <div className="space-y-6">
               {reviews.length === 0 ? (
                 <p className="text-sm text-gray-500">No reviews yet.</p>
@@ -1129,40 +1172,39 @@ export default function PropertyDetails() {
                 reviews.map((review) => (
                   <div
                     key={review._id}
-                    className="border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+                    className="border border-gray-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-xl font-bold text-gray-600 border-2 border-white shadow-sm">
+                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-lg font-bold text-gray-600 border-2 border-white shadow-sm">
                         {(review.user?.name || "Anonymous").slice(0, 2).toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-medium">{review.user?.name || "Anonymous"}</div>
+                        <div className="font-medium text-gray-800">{review.user?.name || "Anonymous"}</div>
                         <div className="flex items-center">
                           {renderStars(review.stars)}
-                          <span className="ml-1 text-sm font-medium">
-                            {review.stars}
-                          </span>
+                          <span className="ml-1 text-sm font-medium">{review.stars}</span>
                         </div>
                       </div>
                       <div className="ml-auto text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                        {new Date(review.createdAt).toLocaleString()}
+                      {formatDistanceToNow(new Date(review.createdAt), {
+                                  addSuffix: true,
+                                })}
+                        {/* {new Date(review.createdAt).toLocaleString()} */}
                       </div>
                     </div>
-                    <p className="text-sm text-gray-700 leading-relaxed mb-3">
-                      {review.text}
-                    </p>
+                    <p className="text-sm text-gray-700 leading-relaxed mb-3">{review.text}</p>
                     {review.user?._id === userId && (
                       <div className="flex gap-4 mt-2">
                         <button
                           onClick={() => handleEditReview(review._id, review.stars, review.text)}
-                          className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center"
+                          className="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center"
                         >
                           <Edit className="h-4 w-4 mr-1" />
                           Edit
                         </button>
                         <button
                           onClick={() => handleDeleteReview(review._id)}
-                          className="text-xs text-red-500 hover:text-red-700 font-medium flex items-center"
+                          className="text-sm text-red-500 hover:text-red-700 font-medium flex items-center"
                         >
                           <Trash className="h-4 w-4 mr-1" />
                           Delete
@@ -1208,13 +1250,13 @@ export default function PropertyDetails() {
           <img
             src={image.src || "/placeholder.svg"}
             alt={image.alt}
-            className="max-h-full max-w-full object-contain"
+            className="max-h-full max-w-full object-contain rounded-lg"
           />
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
+            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors bg-black bg-opacity-50 rounded-full p-2"
           >
-            <X className="h-8 w-8" />
+            <X className="h-6 w-6" />
           </button>
         </div>
       </div>
@@ -1227,8 +1269,8 @@ export default function PropertyDetails() {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-xl w-full max-w-sm mx-4 shadow-xl">
-          <div className="flex justify-between items-center p-4 border-b">
-            <h3 className="font-semibold text-lg">Share Property</h3>
+          <div className="flex justify-between items-center p-4 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-800">Share Property</h3>
             <button
               onClick={() => setShowShareOptions(false)}
               className="text-gray-500 hover:bg-gray-100 p-1.5 rounded-full transition-colors"
@@ -1236,33 +1278,33 @@ export default function PropertyDetails() {
               <X className="h-5 w-5" />
             </button>
           </div>
-          <div className="p-6 flex flex-col gap-4">
+          <div className="p-6 flex flex-col gap-3">
             <button
               onClick={() => handleShare("whatsapp")}
               className="flex items-center gap-3 px-4 py-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
             >
-              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.134.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.074-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.099-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.112-5.505 4.49-9.984 9.997-9.984 2.655 0 5.146.984 7.018 2.761a9.835 9.835 0 012.976 7.022c-.112 5.506-4.491 9.984-9.998 9.985zm6.403-1.714c.225.112.471.347.537.694.074.347.074.694-.173 1.103-.248.694-1.255 1.612-2.306 1.761-.571.085-1.213.112-1.996-.15-.446-.149-1.017-.347-1.758-.625-3.493-1.314-5.892-4.427-6.04-4.626-.149-.198-1.213-1.612-1.213-3.074 0-1.314.669-1.961.94-2.258.272-.297.571-.371.792-.371h.372c.198 0 .446-.025.669.446.272.595.892 1.985.892 1.985.025.099.05.198-.025.297-.074.099-.173.198-.347.297-.173.099-.347.297-.495.595-.149.297-.272.595-.149.892.123.297.619 1.016 1.48 1.985 1.115 1.255 2.033 1.612 2.33 1.784.297.173.595.074.792-.074.198-.149.446-.595.669-.892.223-.297.446-.347.669-.248.223.099.892.595 1.985 1.314.892.595 1.389.892 1.612.992z"/>
               </svg>
-              Share on WhatsApp
+              WhatsApp
             </button>
             <button
               onClick={() => handleShare("facebook")}
               className="flex items-center gap-3 px-4 py-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
             >
-              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
               </svg>
-              Share on Facebook
+              Facebook
             </button>
             <button
               onClick={() => handleShare("twitter")}
               className="flex items-center gap-3 px-4 py-3 bg-sky-100 text-sky-700 rounded-lg hover:bg-sky-200 transition-colors"
             >
-              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.095 7.14 2.095 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z"/>
               </svg>
-              Share on Twitter
+              Twitter
             </button>
           </div>
         </div>
@@ -1272,67 +1314,60 @@ export default function PropertyDetails() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      <div className="flex justify-center items-center min-h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-indigo-600"></div>
       </div>
     );
   }
 
   if (error || !property) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <p className="text-red-500">{error || "Property not found."}</p>
+      <div className="flex justify-center items-center min-h-screen bg-gray-50">
+        <p className="text-red-500 text-lg font-medium">{error || "Property not found."}</p>
       </div>
     );
   }
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <div className="bg-white shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto flex justify-between items-center p-4">
-          <h1 className="text-xl font-semibold text-gray-800">
-            Property Details
-          </h1>
-          <div className="flex items-center text-sm">
-            <span className="text-gray-500">
-              Property ({property.propertyType || "N/A"})
-            </span>
-            <span className="mx-2 text-gray-300">•</span>
-            <span className="text-gray-500">{property.propertyType || "Sell"}</span>
-            <span className="mx-2 text-gray-300">•</span>
-            <Link
-              href="#"
-              className="text-purple-600 font-medium hover:text-purple-800"
-            >
+      <header className="bg-white shadow-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-800">Property Details</h1>
+          <div className="flex items-center text-sm text-gray-500">
+            <span>Property ({property.propertyType || "N/A"})</span>
+            <span className="mx-2">•</span>
+            <span>{property.propertyType || "Sell"}</span>
+            <span className="mx-2">•</span>
+            <Link href="#" className="text-indigo-600 font-medium hover:text-indigo-800">
               View
             </Link>
           </div>
         </div>
-      </div>
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      </header>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <div className="relative rounded-xl overflow-hidden mb-6 shadow-md bg-white">
-              <div className="relative aspect-video">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="relative rounded-2xl overflow-hidden shadow-xl">
+              <div className="relative aspect-[16/9]">
                 <img
                   src={property.images[currentImageIndex].src || "/placeholder.svg"}
                   alt={property.images[currentImageIndex].alt}
-                  className="w-full h-[500px] object-cover"
+                  className="w-full h-[400px] object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                 <button
                   onClick={prevImage}
                   className="absolute left-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
                 >
-                  <ChevronLeft className="h-5 w-5" />
+                  <ChevronLeft className="h-6 w-6 text-gray-700" />
                 </button>
                 <button
                   onClick={nextImage}
                   className="absolute right-4 top-1/2 -translate-y-1/2 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
                 >
-                  <ChevronRight className="h-5 w-5" />
+                  <ChevronRight className="h-6 w-6 text-gray-700" />
                 </button>
-                <div className="absolute bottom-4 left-4 bg-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-md">
+                <div className="absolute bottom-4 left-4 bg-white px-4 py-2 rounded-lg text-sm font-medium shadow-md">
                   {property.images[currentImageIndex].label}
                 </div>
                 <div className="absolute top-4 right-4 flex gap-2">
@@ -1355,19 +1390,30 @@ export default function PropertyDetails() {
                     onClick={() => setShowShareOptions(true)}
                     className="bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors"
                   >
-                    <Share2 className="h-5 w-5 text-blue-500" />
+                    <Share2 className="h-5 w-5 text-indigo-500" />
                   </button>
                 </div>
               </div>
+              <div className="flex overflow-x-auto gap-2 p-4 bg-white">
+                {property.images.map((image, index) => (
+                  <img
+                    key={index}
+                    src={image.src || "/placeholder.svg"}
+                    alt={image.alt}
+                    className={`w-20 h-20 object-cover rounded-md cursor-pointer border-2 ${
+                      currentImageIndex === index ? "border-indigo-500" : "border-transparent"
+                    }`}
+                    onClick={() => setCurrentImageIndex(index)}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
+            <div className="bg-white rounded-2xl p-6 shadow-md">
               <div className="flex justify-between items-start">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-800">
-                    {property.title}
-                  </h2>
-                  <div className="flex items-center text-gray-600 mt-1">
-                    <MapPin className="h-4 w-4 mr-1.5 text-purple-500" />
+                  <h2 className="text-3xl font-bold text-gray-800">{property.title}</h2>
+                  <div className="flex items-center text-gray-600 mt-2">
+                    <MapPin className="h-5 w-5 mr-2 text-indigo-500" />
                     <span className="text-sm">{property.location}</span>
                   </div>
                 </div>
@@ -1375,16 +1421,10 @@ export default function PropertyDetails() {
                   <MoreVertical className="h-5 w-5" />
                 </button>
               </div>
-              <div className="flex justify-between items-center mt-4 pb-4 border-b">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl font-bold text-purple-600">
-                      {property.price}
-                    </span>
-                    <span className="text-sm text-gray-600">
-                      {property.pricePerSqft}
-                    </span>
-                  </div>
+              <div className="flex justify-between items-center mt-4 border-b border-gray-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl font-bold text-indigo-600">{property.price}</span>
+                  <span className="text-sm text-gray-600">{property.pricePerSqft}</span>
                 </div>
                 <div className="text-sm font-medium px-3 py-1 bg-green-100 text-green-800 rounded-full">
                   {property.isNegotiable && "Negotiable"}
@@ -1399,108 +1439,88 @@ export default function PropertyDetails() {
                     {tag}
                   </span>
                 ))}
-                <button className="ml-auto bg-purple-100 text-purple-800 text-xs px-3 py-1.5 rounded-full flex items-center font-medium">
+                <button className="ml-auto bg-indigo-100 text-indigo-800 text-xs px-3 py-1.5 rounded-full flex items-center font-medium hover:bg-indigo-200 transition-colors">
                   Play Video <ChevronRight className="h-3 w-3 ml-1" />
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
               {property.features.map((feature, index) => (
                 <div
                   key={index}
-                  className="flex flex-col items-center text-center p-4 border rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow"
+                  className="flex flex-col items-center text-center p-4 bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow"
                 >
-                  <div className="text-purple-500 bg-purple-50 p-2.5 rounded-full mb-2">
+                  <div className="text-indigo-500 bg-indigo-50 p-3 rounded-full mb-2">
                     <FeatureIcon type={feature.icon} />
                   </div>
-                  <span className="text-xs text-gray-700 font-medium">
-                    {feature.label}
-                  </span>
+                  <span className="text-sm text-gray-700 font-medium">{feature.label}</span>
                 </div>
               ))}
             </div>
-            <div className="bg-white rounded-t-xl shadow-sm">
-              <div className="flex overflow-x-auto scrollbar-hide">
-                {["about", "amenities", "furnishing", "gallery", "review"].map(
-                  (tab) => (
-                    <button
-                      key={tab}
-                      className={`px-6 py-4 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-                        activeTab === tab
-                          ? "text-purple-600 border-purple-600"
-                          : "text-gray-600 border-transparent hover:text-purple-500 hover:border-purple-200"
-                      }`}
-                      onClick={() => setActiveTab(tab)}
-                    >
-                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                    </button>
-                  )
-                )}
+            <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+              <div className="flex border-b border-gray-100">
+                {["about", "amenities", "furnishing", "gallery", "review"].map((tab) => (
+                  <button
+                    key={tab}
+                    className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
+                      activeTab === tab
+                        ? "text-indigo-600 border-b-2 border-indigo-600"
+                        : "text-gray-600 hover:text-indigo-500"
+                    }`}
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                ))}
               </div>
-            </div>
-            <div className="bg-white rounded-b-xl shadow-sm p-6 mb-6">
-              {renderTabContent()}
+              <div className="p-6">{renderTabContent()}</div>
             </div>
           </div>
           <div>
-            <div className="bg-white border rounded-xl p-6 mb-6 shadow-sm sticky top-24">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800">
-                Property Owner
-              </h3>
+            <div className="bg-white rounded-2xl p-6 shadow-md sticky top-24">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">Property Owner</h3>
               <div className="flex flex-col items-center">
-                <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-3xl font-bold text-gray-600 border-4 border-white shadow-md mb-3">
+                <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-2xl font-bold text-gray-600 border-4 border-white shadow-md mb-3">
                   {property.owner.name.slice(0, 2).toUpperCase()}
                 </div>
-                <h4 className="font-semibold text-lg">{property.owner.name}</h4>
+                <h4 className="text-lg font-semibold text-gray-800">{property.owner.name}</h4>
                 <div className="flex items-center my-2">
                   {renderStars(property.owner.rating)}
-                  <span className="ml-1 font-medium">
-                    {property.owner.rating}
-                  </span>
-                  <span className="ml-1 text-xs text-gray-500">
-                    {property.owner.reviews} reviews
-                  </span>
+                  <span className="ml-1 font-medium">{property.owner.rating}</span>
+                  <span className="ml-1 text-xs text-gray-500">({property.owner.reviews})</span>
                 </div>
                 <div className="w-full mt-4 space-y-3">
                   <a
-                    href={`https://wa.me/${property.owner.WhatsApp.replace(
-                      /\s+/g,
-                      ""
-                    )}`}
+                    href={`https://wa.me/${property.owner.WhatsApp.replace(/\s+/g, "")}`}
                     className="flex items-center justify-center gap-2 w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-medium"
                   >
                     <WhatsApp className="h-5 w-5" />
-                    <span>Message on WhatsApp</span>
+                    Message on WhatsApp
                   </a>
                   <a
                     href={`tel:${property.owner.phone.replace(/\s+/g, "")}`}
-                    className="flex items-center justify-center gap-2 w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                    className="flex items-center justify-center gap-2 w-full bg-indigo-500 text-white py-3 rounded-lg hover:bg-indigo-600 transition-colors font-medium"
                   >
                     <Phone className="h-5 w-5" />
-                    <span>Call Owner</span>
+                    Call Owner
                   </a>
-                </div>
-                <div className="w-full mt-5 grid grid-cols-1 gap-3">
                   <button
                     onClick={() => setShowNotify(true)}
-                    className="border border-gray-300 text-gray-700 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+                    className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
                   >
                     Notify
                   </button>
-                  {/* <button className="bg-purple-600 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-purple-700 transition-colors">
-                    View Profile
-                  </button> */}
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </main>
       {showNotify && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl w-full max-w-md mx-4 shadow-xl">
-            <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="font-semibold text-lg">Notify</h3>
+            <div className="flex justify-between items-center p-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-800">Notify Owner</h3>
               <button
                 onClick={() => setShowNotify(false)}
                 className="text-gray-500 hover:bg-gray-100 p-1.5 rounded-full transition-colors"
@@ -1510,53 +1530,44 @@ export default function PropertyDetails() {
             </div>
             <div className="p-6">
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">
-                  Select Reason
-                </label>
-                <div className="relative">
-                  <select className="w-full border rounded-lg py-2.5 px-3 appearance-none pr-8 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                    <option>Want to Buy</option>
-                    <option>Change Photos</option>
-                    <option>Wrong Information</option>
-                    <option>Property Not Available</option>
-                    <option>Other</option>
-                  </select>
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="h-4 w-4"
-                    >
-                      <path d="m6 9 6 6 6-6"></path>
-                    </svg>
-                  </div>
-                </div>
+                <label className="block text-sm font-medium mb-2">Notification Title</label>
+                <input
+                  type="text"
+                  value={notificationTitle}
+                  onChange={(e) => setNotificationTitle(e.target.value)}
+                  placeholder="Enter Notification Title"
+                  className="w-full border border-gray-200 rounded-lg py-2.5 px-3 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
               </div>
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">
-                  Notification
-                </label>
+                <label className="block text-sm font-medium mb-2">Notification Message</label>
                 <textarea
-                  placeholder="Enter Notification Text"
-                  className="w-full border rounded-lg py-2.5 px-3 h-32 resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  value={notificationText}
+                  onChange={(e) => setNotificationText(e.target.value)}
+                  placeholder="Enter Notification Message"
+                  className="w-full border border-gray-200 rounded-lg py-2.5 px-3 h-32 resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 ></textarea>
               </div>
               <div className="grid grid-cols-2 gap-3 mt-6">
                 <button
-                  onClick={() => setShowNotify(false)}
+                  onClick={() => {
+                    setNotificationTitle("");
+                    setNotificationText("");
+                  }}
                   className="border border-gray-300 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors"
                 >
                   Clear
                 </button>
-                <button className="bg-purple-600 text-white py-2.5 rounded-lg font-medium hover:bg-purple-700 transition-colors">
-                  Share Now
+                <button
+                  onClick={handleSubmitNotification}
+                  disabled={!notificationTitle.trim() || !notificationText.trim()}
+                  className={`py-2.5 rounded-lg font-medium transition-colors ${
+                    notificationTitle.trim() && notificationText.trim()
+                      ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                      : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  }`}
+                >
+                  Send Notification
                 </button>
               </div>
             </div>

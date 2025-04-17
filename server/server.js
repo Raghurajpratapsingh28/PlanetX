@@ -7,6 +7,7 @@ const propertyRoutes = require("./routes/propertyRoutes");
 const wishlistRoutes = require("./routes/wishlistRoutes");
 const highlightRoutes = require("./routes/highlightRoutes");
 const adminPanelRoutes = require("./routes/adminPanelRoutes");
+const feedbackRoutes = require("./routes/feedbackRoutes")
 const { authenticateToken } = require("./middleware/authMiddleware");
 const { pushTestData } = require("./scripts/add_test");
 
@@ -40,6 +41,7 @@ const startServer = async () => {
     app.use("/api/wishlist", authenticateToken, wishlistRoutes);
     app.use("/api/highlights", authenticateToken, highlightRoutes);
     app.use("/api/admin", authenticateToken, adminPanelRoutes);
+    app.use("/api/centralfeedback", authenticateToken ,feedbackRoutes); // Remove authenticateToken for GET
 
     // Start Server
     const PORT = process.env.PORT || 5000;

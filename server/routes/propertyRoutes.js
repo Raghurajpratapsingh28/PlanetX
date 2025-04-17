@@ -78,4 +78,6 @@ router.get("/getProperty/:propertyId", getPropertyById);
 router.get("/reviews/:propertyId", getReviews); // New route
 router.post("/post-notifications",postNotifications);
 
+
+
 module.exports = router;

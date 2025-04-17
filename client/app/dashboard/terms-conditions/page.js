@@ -5,306 +5,130 @@ import Privacy from "./_components/privacy";
 const TermsandConditionPage = () => {
   return (
     <div className="p-6 space-y-6 w-[70vw]">
-      <h1 className="text-2xl font-semibold text-left ml-6">
-        Terms & Conditions
-      </h1>
+      <h1 className="text-2xl font-semibold text-left ml-6">Terms & Conditions</h1>
+      <p className="text-[#6C696A] ml-6">Last Updated: January 1, 2025</p>
       <div className="p-5 bg-white rounded-xl border flex flex-col gap-5 shadow-xl">
-        {/* 01. Introduction */}
+        {/* 01. Use of Services */}
         <Card>
           <CardContent className="p-4">
-            <h2 className="text-xl font-semibold mb-2">01. Introduction</h2>
-            <p className="text-[#6C696A]">
-              [Planet X] is a platform that facilitates property rentals by
-              connecting property owners (“Owners”) with potential renters
-              (“Renters”).
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* 02. Eligibility */}
-        <Card>
-          <CardContent className="p-4">
-            <h2 className="text-xl font-semibold mb-2">02. Eligibility</h2>
+            <h2 className="text-xl font-semibold mb-2">01. Use of Services</h2>
             <div className="text-[#6C696A] space-y-3">
-              <p>To use [Planet X], you must:</p>
-              <p className="font-semibold">Be at least 13 years old.</p>
-              <hr />
-              <p className="font-semibold ">
-                Provide accurate and up-to-date information.
-              </p>
-              <hr />
-              <p className="font-semibold ">
-                Comply with applicable laws and regulations.
-              </p>
+              <p>You can use our app regardless of your age.</p>
+              <hr className="my-2" />
+              <p>You agree to provide accurate and complete information when creating an account.</p>
+              <hr className="my-2" />
+              <p>You are responsible for maintaining the confidentiality of your account credentials.</p>
             </div>
           </CardContent>
         </Card>
 
-        {/* 03. User Responsibilities */}
+        {/* 02. User-Generated Content */}
         <Card>
           <CardContent className="p-4">
-            <h2 className="text-xl font-semibold mb-2">
-              03. User Responsibilities
-            </h2>
+            <h2 className="text-xl font-semibold mb-2">02. User-Generated Content</h2>
             <div className="text-[#6C696A] space-y-3">
-              <p>You agree to:</p>
-              <p className="font-semibold">
-                Use the platform for lawful purposes only.
-              </p>
-              <hr />
-              <p className="font-semibold ">
-                Ensure all information provided, including property details, is
-                accurate.
-              </p>
-              <hr />
-              <p className="font-semibold ">
-                Not engage in fraud, harassment, or misuse of the platform.
-              </p>
-              <hr />
-              <p className="font-bold text-black">You understand that:</p>
-              <p className="text-[#6C696A] font-semibold">
-                Owners are responsible for ensuring properties meet legal
-                standards.
-              </p>
-              <hr />
-              <p className="text-[#6C696A] font-semibold">
-                Renters must conduct due diligence before rental agreements.
-              </p>
+              <p>By uploading images, videos, or other content, you grant PlanetX a non-exclusive, worldwide, royalty-free license to use, modify, and distribute such content for marketing, promotional, and business purposes.</p>
+              <hr className="my-2" />
+              <p>You must have the necessary rights to upload content and ensure it does not violate any laws or third-party rights.</p>
             </div>
           </CardContent>
         </Card>
 
-        {/* 04. Platform Role */}
+        {/* 03. Marketing and Promotions */}
         <Card>
           <CardContent className="p-4">
-            <h2 className="text-xl font-semibold mb-2">04. Platform Role</h2>
+            <h2 className="text-xl font-semibold mb-2">03. Marketing and Promotions</h2>
             <div className="text-[#6C696A] space-y-3">
-              <p>
-                [Planet X] acts as a facilitator and is not a party to rental
-                agreements. We are not responsible for:
-              </p>
-              <p className="font-semibold ">
-                The accuracy of property listings.
-              </p>
-              <hr />
-              <p className="font-semibold ">
-                Disputes between Owners and Renters.
-              </p>
-              <hr />
-              <p className="font-semibold ">
-                The quality or condition of the properties.
-              </p>
+              <p>By using our services, you consent to receive promotional emails, messages, and advertisements related to our services and offerings.</p>
+              <hr className="my-2" />
+              <p>You may opt out of marketing communications at any time through account settings or by contacting us.</p>
             </div>
           </CardContent>
         </Card>
 
-        {/* 05. Property Listings */}
+        {/* 04. Prohibited Activities */}
         <Card>
           <CardContent className="p-4">
-            <h2 className="text-xl font-semibold mb-2">
-              05. Property Listings
-            </h2>
-            <p className="text-[#6C696A] font-semibold">
-              Owners must provide accurate property details, including
-              descriptions, images, and pricing. Listings may be removed if they
-              violate policies.
-            </p>
-            <hr className="my-3" />
-            <p className="text-[#6C696A] font-semibold">
-              Listings may be removed or modified at our discretion if found to
-              violate these terms or applicable laws.
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* 06. Payments */}
-        <Card>
-          <CardContent className="p-4">
-            <h2 className="text-xl font-semibold mb-2">06. Payments</h2>
-            <div className="text-[#6C696A] space-y-3 font-semibold">
-              <p>Payments may be processed through third-party gateways.</p>
-              <hr />
-              <p>Users agree to the terms of the payment provider.</p>
-              <hr />
-              <p>
-                We are not liable for disputes, chargebacks, or unauthorized
-                transactions.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* 07. Cancellations and Refunds */}
-        <Card>
-          <CardContent className="p-4">
-            <h2 className="text-xl font-semibold mb-2">
-              07. Cancellations and Refunds
-            </h2>
-            <p className="text-[#6C696A]">
-              Cancellations and refunds are subject to agreements between Owners
-              and Renters. We recommend defining terms clearly before entering
-              agreements.
-            </p>
-            <hr className="my-4" />
-            <p className="text-[#6C696A]">
-              We recommend both parties clearly define these terms before
-              entering into agreements.
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* 08. Prohibited Activities */}
-        <Card>
-          <CardContent className="p-4">
-            <h2 className="text-xl font-semibold mb-2">
-              08. Prohibited Activities
-            </h2>
+            <h2 className="text-xl font-semibold mb-2">04. Prohibited Activities</h2>
             <div className="text-[#6C696A] space-y-3">
-              <p className="text-black font-bold">You agree not to:</p>
-              <p className="font-semibold ">
-                Post false or misleading property information.
-              </p>
-              <hr />
-              <p className="font-semibold ">
-                Promote unrelated services or activities.
-              </p>
-              <hr />
-              <p className="font-semibold ">
-                Violate intellectual property rights or laws.
-              </p>
+              <p>Misuse of our platform, including fraudulent activities, spamming, and violating intellectual property rights, is strictly prohibited.</p>
+              <hr className="my-2" />
+              <p>Any unlawful use of our platform may result in termination of your account.</p>
             </div>
           </CardContent>
         </Card>
 
-        {/* 09. Intellectual Property */}
+        {/* 05. Payments and Transactions */}
         <Card>
           <CardContent className="p-4">
-            <h2 className="text-xl font-semibold mb-2">
-              09. Intellectual Property
-            </h2>
-            <p className="text-[#6C696A]">
-              All content on [Planet X], including text, graphics, logos, and
-              software, is owned by or licensed to us and protected under
-              copyright laws. You may not reproduce, distribute, or modify any
-              content without prior written permission.
-            </p>
+            <h2 className="text-xl font-semibold mb-2">05. Payments and Transactions</h2>
+            <div className="text-[#6C696A] space-y-3">
+              <p>Transactions on PlanetX must comply with applicable financial and legal regulations.</p>
+              <hr className="my-2" />
+              <p>Refund policies, if applicable, will be detailed separately in our Refund Policy.</p>
+            </div>
           </CardContent>
         </Card>
 
-        {/* 10. Limitation of Liability */}
+        {/* 06. Compliance with Laws */}
         <Card>
           <CardContent className="p-4">
-            <h2 className="text-xl font-semibold mb-2">
-              10. Limitation of Liability
-            </h2>
-            <p className="text-[#6C696A]">[Planet X] is not responsible for:</p>
-            <p className="text-[#6C696A] mt-2">
-              Any loss, damage, or injury resulting from property rentals or
-              platform use.
-            </p>
-            <hr className="my-3" />
-            <p className="text-[#6C696A]">
-              Disputes or legal claims arising from agreements between Owners
-              and Renters.
-            </p>
-            <hr className="my-3" />
-            <p className="text-[#6C696A]">
-              Temporary or permanent platform unavailability.
-            </p>
-            <hr className="my-3" />
-            <p className="text-[#6C696A]">
-              Our total liability, if any, will not exceed the fees you paid to
-              us in the past six months.
-            </p>
+            <h2 className="text-xl font-semibold mb-2">06. Compliance with Laws</h2>
+            <div className="text-[#6C696A] space-y-3">
+              <p>PlanetX adheres to applicable laws, including data protection regulations (GDPR, CCPA, etc.), App Store, and Play Store policies.</p>
+              <hr className="my-2" />
+              <p>Users must comply with all relevant laws while using the platform.</p>
+            </div>
           </CardContent>
         </Card>
 
-        {/* 11. Termination */}
+        {/* 07. Termination of Services */}
         <Card>
           <CardContent className="p-4">
-            <h2 className="text-xl font-semibold mb-2">11. Termination</h2>
-            <p className="text-[#6C696A]">
-              We may suspend or terminate accounts for violations, misuse, or
-              legal reasons.
-            </p>
-            <p className="text-[#6C696A] mt-3">Violations of these Terms.</p>
-            <hr className="my-3" />
-            <p className="text-[#6C696A]">Misuse of the platform.</p>
-            <hr className="my-3" />
-            <p className="text-[#6C696A]">As required by law.</p>
-            <hr className="my-3" />
+            <h2 className="text-xl font-semibold mb-2">07. Termination of Services</h2>
+            <p className="text-[#6C696A]">We reserve the right to suspend or terminate accounts that violate our terms or engage in prohibited activities.</p>
           </CardContent>
         </Card>
 
-        {/* 12. Privacy */}
-        <Privacy />
-
-        {/* 13. Dispute Resolution */}
+        {/* 08. Liability and Disclaimers */}
         <Card>
           <CardContent className="p-4">
-            <h2 className="text-xl font-semibold mb-2">
-              13. Dispute Resolution
-            </h2>
-            <p className="text-[#6C696A]">
-              Any disputes arising from these Terms will be resolved through:
-            </p>
-            <h2 className="font-bold text-black mt-3 text-lg">Negotiation:</h2>
-            <p className="text-[#6C696A]">
-              Initial attempts to resolve disputes informally.
-            </p>
-            <hr className="my-3" />
-            <h2 className="font-bold text-black text-lg">Arbitration:</h2>
-            <p className="text-[#6C696A]">
-              If negotiation fails, disputes will be settled under applicable
-              arbitration laws in [Your Jurisdiction].
-            </p>
+            <h2 className="text-xl font-semibold mb-2">08. Liability and Disclaimers</h2>
+            <p className="text-[#6C696A]">We do not guarantee uninterrupted service and are not responsible for any losses due to service interruptions or security breaches.</p>
           </CardContent>
         </Card>
 
-        {/* 14. Governing Law */}
+        {/* 09. Changes to Terms */}
         <Card>
           <CardContent className="p-4">
-            <h2 className="text-xl font-semibold mb-2">14. Governing Law</h2>
-            <p className="text-[#6C696A]">
-              These Terms are governed by and construed in accordance with the
-              laws of [Your Jurisdiction].
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <h2 className="text-xl font-semibold mb-2">
-              15. Changes to the Terms
-            </h2>
-            <p className="text-[#6C696A]">
-              We reserve the right to update or modify these Terms at any time.
-              Continued use of the platform constitutes acceptance of the
-              revised terms.
-            </p>
+            <h2 className="text-xl font-semibold mb-2">09. Changes to Terms</h2>
+            <p className="text-[#6C696A]">We may update these terms periodically, and continued use of PlanetX constitutes acceptance of the revised terms.</p>
           </CardContent>
         </Card>
 
-        {/* 15. Contact Us */}
+        {/* 10. Contact Us */}
         <Card>
           <CardContent className="p-4">
-            <h2 className="text-xl font-semibold mb-2">08. Contact Us</h2>
-            <p className="text-[#6C696A] mb-4">
-              If you have questions or concerns, contact us at:
-            </p>
+            <h2 className="text-xl font-semibold mb-2">10. Contact Us</h2>
+            <p className="text-[#6C696A] mb-4">If you have questions or concerns, contact us at:</p>
             <div className="flex flex-col gap-3">
               <p className="text-[#6C696A] flex flex-col">
-                <span className="font-semibold text-black">Email:</span> [Your
-                Email Address]
+                <span className="font-semibold text-black">Email:</span> contact@planetx-live.com
               </p>
               <hr className="my-2" />
               <p className="text-[#6C696A] flex flex-col">
-                <span className="font-semibold text-black">Address:</span> [Your
-                Business Address]
+                <span className="font-semibold text-black">Customer Support:</span> +91 98735 81566
               </p>
             </div>
           </CardContent>
         </Card>
+
+        {/* 11. Privacy */}
+        <Privacy />
       </div>
+      <p className="text-[#6C696A] ml-6">
+        By accessing or using PlanetX, you agree to be bound by these Terms and Conditions.
+      </p>
     </div>
   );
 };

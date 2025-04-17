@@ -4,7 +4,7 @@ const User = require("../../modals/Users");
 const getNearbyProperties = async (req, res) => {
   try {
     const mobile = req.user.mobile;
-    console.log(mobile);
+  
     if (!mobile) {
       return res.status(400).json({ message: "Mobile number is required" });
     }
@@ -15,7 +15,7 @@ const getNearbyProperties = async (req, res) => {
     if (!user || !user.city) {
       return res.status(404).json({ message: "User or user city not found" });
     }
-    console.log(user);
+ 
     
     const cloudfrontBaseUrl = process.env.CLOUDFRONT_BASE_URL;
     const s3Base = process.env.S3_BASE_URL;
@@ -27,7 +27,6 @@ const getNearbyProperties = async (req, res) => {
     })
       .populate("reviews")
       .lean();
-      console.log(nearbyProperties);
 
     if (nearbyProperties.length === 0) {
       return res.status(404).json({ message: "No properties found in your city" });

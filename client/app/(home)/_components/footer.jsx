@@ -82,9 +82,9 @@ export const Footer = () => {
         <div className="flex flex-col gap-4">
           <h5 className="text-lg sm:text-xl font-semibold text-white">Get in Touch</h5>
           <div className="flex flex-col gap-3 sm:gap-4">
-            <Link href="mailto:property@planetx.com" className="flex items-center gap-2 text-white text-sm sm:text-base">
+            <Link href="mailto:Contact@planetx-live.com" className="flex items-center gap-2 text-white text-sm sm:text-base">
               <Mail className="w-5 h-5 sm:w-6 sm:h-6" />
-              property@planetx.com
+              Contact@planetx-live.com
             </Link>
             <Link href="tel:+919873581566" className="flex items-center gap-2 text-white text-sm sm:text-base">
               <Phone className="w-5 h-5 sm:w-6 sm:h-6" />

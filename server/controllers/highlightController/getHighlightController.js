@@ -3,7 +3,7 @@ const User = require("../../modals/Users");
 
 exports.getAvailablePropertiesForReel = async (req, res) => {
   const { userId } = req.user;
-
+console.log("user Data",req.user)
   if (!userId) {
     return res.status(400).json({ error: "User ID is required." });
   }
