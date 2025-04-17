@@ -128,6 +128,6 @@ const pgSchema = new Schema(
   { timestamps: true }
 );
 
-const PG = Property.discriminator("PG", pgSchema);
+const PG = Property.discriminator("Pg", pgSchema);
 
 module.exports = PG;
