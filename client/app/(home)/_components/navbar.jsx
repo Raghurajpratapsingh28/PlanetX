@@ -75,7 +75,7 @@ export const Navbar = () => {
       fetchNotifications();
 
       // Set up polling for notifications every 30 seconds
-      const intervalId = setInterval(fetchNotifications, 10000);
+      const intervalId = setInterval(fetchNotifications, 30000);
 
       // Cleanup interval on component unmount
       return () => clearInterval(intervalId);
