@@ -1,3 +1,4 @@
+// Highlights.jsx
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -23,6 +24,7 @@ export default function Highlights() {
   const [userId, setUserId] = useState(null);
   const [wishlist, setWishlist] = useState([]);
   const [wishlistLoading, setWishlistLoading] = useState({});
+  const [adCounter, setAdCounter] = useState(0); // Track ad frequency
 
   // Fetch user ID and wishlist
   useEffect(() => {
@@ -145,23 +147,23 @@ export default function Highlights() {
     }
   };
 
-  const handleVideoPlay = (videoId) => {
-    if (!viewedVideos.has(videoId)) {
-      const newViewedVideos = new Set(viewedVideos).add(videoId);
-      setViewedVideos(newViewedVideos);
-      if (newViewedVideos.size >= 2 && newViewedVideos.size % 2 === 0) {
-        setShowAd(true);
-      }
+  // Handle ad display logic
+  const triggerAd = () => {
+    if (adCounter % 2 === 0) {
+      setShowAd(true);
     }
+    setAdCounter((prev) => prev + 1);
   };
 
   const goToNextProperty = () => {
     if (showAd) return;
+    triggerAd(); // Show ad on next property navigation
     setCurrentIndex((prev) => (prev === propertyData.length - 1 ? 0 : prev + 1));
   };
 
   const goToPreviousProperty = () => {
     if (showAd) return;
+    triggerAd(); // Show ad on previous property navigation
     setCurrentIndex((prev) => (prev === 0 ? propertyData.length - 1 : prev - 1));
   };
 
@@ -248,7 +250,16 @@ export default function Highlights() {
                 onAddToWishlist={() => handleWishlistToggle(currentProperty.propertyId)}
                 onViewDetails={() => router.push(`/show-property/${currentProperty.propertyId}`)}
                 onNext={goToNextProperty}
-                onPlay={() => handleVideoPlay(currentProperty.propertyId)}
+                onPrevious={goToPreviousProperty}
+                onPlay={() => {
+                  triggerAd(); // Show ad on video play
+                }}
+                onPause={() => {
+                  triggerAd(); // Show ad on video pause
+                }}
+                onEnd={() => {
+                  triggerAd(); // Show ad on video end
+                }}
               />
             ) : (
               <p className="text-center text-gray-600">Select a property to view</p>
@@ -279,7 +290,7 @@ export default function Highlights() {
                     <div className="bg-white border border-gray-100 rounded-2xl p-6 sm:p-8 shadow-sm hover:shadow-xl transition-all duration-300">
                       <div className="flex flex-col sm:flex-row justify-between items-start mb-4 sm:mb-6">
                         <h2 className="text-2xl sm:text-3xl font-bold text-teal-600 mb-2 sm:mb-0">
-                        {currentProperty?.pricing?.price?.amount
+                          {currentProperty?.pricing?.price?.amount
                             ? `₹${currentProperty.pricing.price.amount.toLocaleString(
                                 "en-IN"
                               )}`
@@ -314,33 +325,6 @@ export default function Highlights() {
                           )}
                         </Button>
                       </div>
-
-                      {/* <div className="flex flex-wrap gap-4 sm:gap-6 mb-6 sm:mb-8">
-                        <div className="flex items-center">
-                          <Bed className="w-5 h-5 mr-2 text-gray-500" />
-                          <span className="text-sm sm:text-base">
-                            {currentProperty.bedrooms !== "N/A"
-                              ? `${currentProperty.bedrooms} Bedrooms`
-                              : "Bedrooms N/A"}
-                          </span>
-                        </div>
-                        <div className="flex items-center">
-                          <Bath className="w-5 h-5 mr-2 text-gray-500" />
-                          <span className="text-sm sm:text-base">
-                            {currentProperty.bathrooms !== "N/A"
-                              ? `${currentProperty.bathrooms} Bathrooms`
-                              : "Bathrooms N/A"}
-                          </span>
-                        </div>
-                        <div className="flex items-center">
-                          <Square className="w-5 h-5 mr-2 text-gray-500" />
-                          <span className="text-sm sm:text-base">
-                            {currentProperty.area !== "N/A"
-                              ? currentProperty.area
-                              : "Area N/A"}
-                          </span>
-                        </div>
-                      </div> */}
 
                       <div className="mb-6 sm:mb-8">
                         <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-3">

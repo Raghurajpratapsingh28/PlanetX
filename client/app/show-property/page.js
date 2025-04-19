@@ -3,7 +3,7 @@
 import SideBarListingview from "./_component/sideBar";
 import MainCard from "./_component/mainCard";
 import { Footer } from "../(home)/_components/footer";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 
@@ -21,7 +21,10 @@ export default function ListingView() {
       {/* Left Sidebar */}
       {/* <SideBarListingview /> */}
       {/* Main Content */}
+      <Suspense fallback={<div>Loading...</div>}>
       <MainCard />
+      </Suspense>
+      
       
     </div>
   );

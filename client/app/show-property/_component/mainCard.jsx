@@ -1,19 +1,47 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Heart, Search, Star, Phone, MessageCircle, Loader2 } from "lucide-react";
+import { Heart, Search, Star, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SortFilter } from "./sortFilter";
 import axios from "axios";
 import BACKEND_URL from "@/lib/BACKEND_URL";
 import { useSearchParams } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
+// SortFilter Component
+const SortFilter = ({ onSortChange }) => {
+  const handleSortChange = (value) => {
+    onSortChange(value);
+  };
+
+  return (
+    <Select onValueChange={handleSortChange} defaultValue="default">
+      <SelectTrigger className="w-[180px] bg-white border-gray-200 focus:border-teal-600 rounded-lg">
+        <SelectValue placeholder="Sort by" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="default">Default</SelectItem>
+        <SelectItem value="price-asc">Price: High to Low</SelectItem>
+        <SelectItem value="price-desc">Price: Low to High</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+};
+
+// MainCard Component
 const MainCard = () => {
   const [propertyData, setPropertyData] = useState([]);
   const [filteredProperties, setFilteredProperties] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [sortOption, setSortOption] = useState("default");
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
   const [wishlist, setWishlist] = useState([]);
@@ -132,16 +160,58 @@ const MainCard = () => {
     }
   };
 
-  // Filter properties
+  // Filter and sort properties
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
-    const filtered = propertyData.filter(
-      (property) =>
-        property.name?.toLowerCase().includes(term) ||
-        JSON.stringify(property.location)?.toLowerCase().includes(term)
-    );
-    setFilteredProperties(filtered);
+
+    let filtered = propertyData;
+    if (term) {
+      filtered = propertyData.filter((property) => {
+        const name = property.name?.toLowerCase() || "";
+        const description = property.description?.toLowerCase() || "";
+        const category = property.category?.toLowerCase() || "";
+        const propertyType = property.propertyType?.toLowerCase() || "";
+        const propertyStatus = property.propertyStatus?.toLowerCase() || "";
+        const location = getFullAddress(property.location).toLowerCase();
+
+        return (
+          name.includes(term) ||
+          description.includes(term) ||
+          category.includes(term) ||
+          propertyType.includes(term) ||
+          propertyStatus.includes(term) ||
+          location.includes(term)
+        );
+      });
+    }
+
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      const getPrice = (property) =>
+        property?.pricing?.price?.amount ||
+        property?.pricing?.expectedPrice ||
+        property?.pricing?.monthlyRent ||
+        0;
+
+      const priceA = getPrice(a);
+      const priceB = getPrice(b);
+
+      if (sortOption === "price-asc") {
+        return priceA - priceB;
+      } else if (sortOption === "price-desc") {
+        return priceB - priceA;
+      }
+      return 0; // Default: no sorting
+    });
+
+    setFilteredProperties(sorted);
+  };
+
+  // Handle sort change
+  const handleSortChange = (value) => {
+    setSortOption(value);
+    handleSearch({ target: { value: searchTerm } }); // Re-apply search with current term and new sort
   };
 
   const getFullAddress = (location) =>
@@ -196,12 +266,12 @@ const MainCard = () => {
           <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
           <Input
             className="pl-10 w-full bg-white border-gray-200 focus:border-teal-600 rounded-lg py-2 transition-all duration-200"
-            placeholder="Search properties by area, city, or name"
+            placeholder="Search by area, city, name, category, or type"
             value={searchTerm}
             onChange={handleSearch}
           />
         </div>
-        <SortFilter />
+        <SortFilter onSortChange={handleSortChange} />
       </div>
 
       {/* Content */}
@@ -214,7 +284,7 @@ const MainCard = () => {
         ) : filteredProperties.length === 0 ? (
           <p className="text-center text-gray-600 py-12">
             {searchTerm
-              ? "No properties match your search criteria."
+              ? `No properties found for "${searchTerm}". Try a different search term.`
               : "No properties available at the moment."}
           </p>
         ) : (
@@ -330,20 +400,6 @@ const MainCard = () => {
                         {property.propertyStatus}
                       </p>
                       <div className="flex gap-2">
-                        {/* <Button
-                          size="sm"
-                          className="rounded-full bg-green-600 hover:bg-green-700 transition-colors px-4"
-                        >
-                          <MessageCircle className="h-4 w-4 mr-1" />
-                          Chat
-                        </Button> */}
-                        {/* <Button
-                          size="sm"
-                          className="rounded-full bg-purple-600 hover:bg-purple-700 transition-colors px-4"
-                        >
-                          <Phone className="h-4 w-4 mr-1" />
-                          Call
-                        </Button> */}
                         <Link href={`/show-property/${property._id}`}>
                           <Button
                             size="sm"

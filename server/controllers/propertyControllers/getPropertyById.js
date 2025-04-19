@@ -7,7 +7,7 @@ exports.getPropertyById = async (req, res) => {
     const { propertyId } = req.params;
     const userId = req.user?.userId;
 
-    console.log("pI:",propertyId," ","uI:",userId);
+
 
     if (!userId) {
       return res.status(400).json({ error: "User ID is required." });
@@ -26,7 +26,7 @@ exports.getPropertyById = async (req, res) => {
       })
       .populate("user", "name mobile whatsappMobile email") // Optionally populate user details
       .lean();
-      console.log(property)
+
 
     if (!property) {
       return res.status(404).json({ error: "Property not found." });

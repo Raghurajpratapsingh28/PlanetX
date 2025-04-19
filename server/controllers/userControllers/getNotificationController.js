@@ -6,7 +6,7 @@ exports.getNotifications = async (req, res) => {
     const notifications = await Notification.find({ adminId: userId })
       .populate("userId", "name") // Populate userId with the 'name' field
       .sort({ date: -1 });
-
+    
 
     if (!notifications.length) {
       return res

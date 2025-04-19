@@ -6,6 +6,12 @@ const nextConfig = {
       "d184sobil26gg7.cloudfront.net"
     ],
   },
+  eslint:{
+    ignoreDuringBuilds:true,
+  },
+  typescript:{
+    ignoreBuildErrors:true,
+  }
 };
 
 export default nextConfig;

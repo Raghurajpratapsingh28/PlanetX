@@ -1,3 +1,4 @@
+// PropertyVideoPlayer.jsx
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -12,7 +13,9 @@ export default function PropertyVideoPlayer({
   onViewDetails = (id) => console.log(`Viewing details for ${id}`),
   onNext = () => {},
   onPrevious = () => {},
-  onPlay = () => {}, // New prop for play event
+  onPlay = () => {}, // Callback for play event
+  onPause = () => {}, // Callback for pause event
+  onEnd = () => {}, // Callback for end event
 }) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
@@ -25,18 +28,16 @@ export default function PropertyVideoPlayer({
   const videoRef = useRef(null);
   const containerRef = useRef(null);
 
-  // console.log("Video URL", video[0].video);
-
   useEffect(() => {
     const videoElement = videoRef.current;
     if (!videoElement) return;
 
     // Reset video state when video source changes
-    videoElement.load(); // This reloads the video source
+    videoElement.load();
     setIsPlaying(true);
     setProgress(0);
     setIsLoading(true);
-    
+
     // Start playing the new video
     videoElement.play().catch(() => setIsPlaying(false));
   }, [video]);
@@ -50,12 +51,19 @@ export default function PropertyVideoPlayer({
     const handleEnded = () => {
       setIsPlaying(false);
       videoElement.currentTime = 0;
+      onEnd(); // Trigger ad when video ends
     };
     const handleLoadedData = () => setIsLoading(false);
     const handleWaiting = () => setIsLoading(true);
     const handleCanPlay = () => setIsLoading(false);
-    const handlePlay = () => setIsPlaying(true);
-    const handlePause = () => setIsPlaying(false);
+    const handlePlay = () => {
+      setIsPlaying(true);
+      onPlay(); // Trigger ad when video plays
+    };
+    const handlePause = () => {
+      setIsPlaying(false);
+      onPause(); // Trigger ad when video pauses
+    };
 
     videoElement.addEventListener("loadedmetadata", updateDuration);
     videoElement.addEventListener("timeupdate", updateProgress);
@@ -76,7 +84,7 @@ export default function PropertyVideoPlayer({
       videoElement.removeEventListener("play", handlePlay);
       videoElement.removeEventListener("pause", handlePause);
     };
-  }, []);
+  }, [onPlay, onPause, onEnd]);
 
   const togglePlay = () => {
     const videoElement = videoRef.current;
@@ -162,16 +170,6 @@ export default function PropertyVideoPlayer({
           <Loader2 className="w-8 h-8 text-white animate-spin" />
         </div>
       )}
-
-      {/* Top gradient with title (hidden on mobile) */}
-      {/* <div className="hidden sm:block absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/80 to-transparent">
-        <h3 className="text-white font-semibold text-xl md:text-2xl truncate">{video.title}</h3>
-      </div> */}
-
-      {/* Mobile title overlay */}
-      {/* <div className="sm:hidden absolute bottom-16 left-4 right-4">
-        <h3 className="text-white font-semibold text-lg drop-shadow-md line-clamp-2">{video.title}</h3>
-      </div> */}
 
       {/* Action buttons */}
       <div className="absolute right-4 flex top-[10%] sm:top-4 flex-col sm:flex-row gap-2 sm:gap-3">
