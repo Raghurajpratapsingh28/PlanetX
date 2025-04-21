@@ -104,6 +104,33 @@ const MainCard = () => {
     fetchPropertyData();
   }, [searchParams]);
 
+  // <----- Fetching Filtered Available Properties ----->
+  useEffect(()=>{
+    const fetchFilteredProperties = async () => {
+      const token = localStorage.getItem("accessToken")?.replace(/^"|"$/g, "");
+      if (!token) return;
+
+      try {
+        setLoading(true);
+        const response = await axios.get(`${BACKEND_URL}/properties/availableFilteredProperty?${new URLSearchParams(
+            searchParams
+          ).toString()}`,
+        {
+          headers: { Authorization: token},
+        })
+
+        const properties = response.data || [];
+        console.log("Filtered properties:", properties);
+        setFilteredProperties(properties.data);
+      } catch (error) {
+        console.error("Error fetching property data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFilteredProperties();
+  },[searchParams])
+
   // Handle wishlist toggle
   const handleWishlistToggle = async (propertyId) => {
     if (!userId) {
@@ -163,6 +190,7 @@ const MainCard = () => {
   // Filter and sort properties
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
+    console.log("Search term:", term);
     setSearchTerm(term);
 
     let filtered = propertyData;
@@ -211,6 +239,7 @@ const MainCard = () => {
   // Handle sort change
   const handleSortChange = (value) => {
     setSortOption(value);
+    // console.log("Sort option:", value);
     handleSearch({ target: { value: searchTerm } }); // Re-apply search with current term and new sort
   };
 

@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 // import { ReusableCollapsible } from "./collapsible"; // Updated import name
 import BudgetFilter from "./BudgetFilter";
-import { AreaFilter } from "./areaFilter";
+// import { AreaFilter } from "./areaFilter";
 import { ReusableCollapsible } from "./collapisble";
 
 const SideBarListingview = () => {
   const [selectedType, setSelectedType] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedBedroom, setSelectedBedroom] = useState(null);
-  const [selectedRole, setSelectedRole] = useState(null);
-  const [selectedParking, setSelectedParking] = useState(null);
-  const [selectedFurnished, setSelectedFurnished] = useState(null);
+  // const [selectedBedroom, setSelectedBedroom] = useState(null);
+  // const [selectedRole, setSelectedRole] = useState(null);
+  // const [selectedParking, setSelectedParking] = useState(null);
+  // const [selectedFurnished, setSelectedFurnished] = useState(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false); // Mobile filter toggle
 
   return (
@@ -34,7 +34,7 @@ const SideBarListingview = () => {
       {/* Filter Options - Hidden on mobile unless toggled */}
       <div className={`${isFilterOpen ? "block" : "hidden"} md:block space-y-6`}>
         <BudgetFilter />
-        <AreaFilter />
+        {/* <AreaFilter /> */}
         <ReusableCollapsible
           title="Property Type"
           options={["For Sale", "For Rent", "Commercial"]}
@@ -58,14 +58,14 @@ const SideBarListingview = () => {
           setSelected={setSelectedCategory}
           paramName="category"
         />
-        <ReusableCollapsible
+        {/* <ReusableCollapsible
           title="Number of Bedrooms"
           options={["1", "2", "3", "4", "5", "6+"]}
           selected={selectedBedroom}
           setSelected={setSelectedBedroom}
           paramName="bedrooms"
-        />
-        <ReusableCollapsible
+        /> */}
+        {/* <ReusableCollapsible
           title="Posted By"
           options={[
             "Buyer",
@@ -79,21 +79,21 @@ const SideBarListingview = () => {
           selected={selectedRole}
           setSelected={setSelectedRole}
           paramName="postedBy"
-        />
-        <ReusableCollapsible
+        /> */}
+        {/* <ReusableCollapsible
           title="Parking"
           options={["Open Parking", "Closed Parking"]}
           selected={selectedParking}
           setSelected={setSelectedParking}
           paramName="parking"
-        />
-        <ReusableCollapsible
+        /> */}
+        {/* <ReusableCollapsible
           title="Furnishing Status"
           options={["Furnished", "Semi furnished", "Unfurnished"]}
           selected={selectedFurnished}
           setSelected={setSelectedFurnished}
           paramName="furnishing"
-        />
+        /> */}
       </div>
     </div>
   );
