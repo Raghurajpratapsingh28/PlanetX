@@ -93,7 +93,7 @@ const MainCard = () => {
         );
         const properties = response.data.properties || [];
         setPropertyData(properties);
-        setFilteredProperties(properties);
+        // setFilteredProperties(properties);
       } catch (error) {
         console.error("Error fetching property data:", error);
       } finally {
