@@ -120,7 +120,7 @@ const MainCard = () => {
         })
 
         const properties = response.data || [];
-        console.log("Filtered properties:", properties);
+        // console.log("Filtered properties:", properties);
         setFilteredProperties(properties.data);
       } catch (error) {
         console.error("Error fetching property data:", error);
@@ -130,6 +130,8 @@ const MainCard = () => {
     };
     fetchFilteredProperties();
   },[searchParams])
+
+console.log("Filtered properties:", filteredProperties);
 
   // Handle wishlist toggle
   const handleWishlistToggle = async (propertyId) => {
@@ -319,32 +321,32 @@ const MainCard = () => {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-1">
             {filteredProperties.map((property) => {
-              const averageRating = getAverageRating(property.reviews);
+              const averageRating = getAverageRating(property._doc.reviews);
               return (
                 <article
-                  key={property._id}
+                  key={property._doc._id}
                   className="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col md:flex-row gap-5 shadow-sm hover:shadow-xl transition-all duration-300"
                 >
                   {/* Image */}
                   <div className="relative w-full md:w-72 h-56 flex-shrink-0 rounded-xl overflow-hidden">
                     <img
-                      src={property.images?.[0]?.url || "/default-property.jpg"}
-                      alt={property.location.subLocality || "Property"}
+                      src={property?.images?.[0] || "/default-property.jpg"}
+                      alt={property._doc.location.subLocality || "Property"}
                       className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
                     />
                     <Button
                       variant="ghost"
                       size="icon"
                       className="absolute top-3 right-3 bg-white/90 hover:bg-white rounded-full transition-all duration-200"
-                      onClick={() => handleWishlistToggle(property._id)}
-                      disabled={wishlistLoading[property._id]}
+                      onClick={() => handleWishlistToggle(property._doc._id)}
+                      disabled={wishlistLoading[property._doc._id]}
                     >
-                      {wishlistLoading[property._id] ? (
+                      {wishlistLoading[property._doc._id] ? (
                         <Loader2 className="h-6 w-6 text-gray-500 animate-spin" />
                       ) : (
                         <Heart
                           className={`h-6 w-6 transition-all duration-200 ${
-                            wishlist.includes(property._id)
+                            wishlist.includes(property._doc._id)
                               ? "text-red-500 fill-red-500"
                               : "text-gray-500 hover:text-red-500"
                           }`}
@@ -359,11 +361,11 @@ const MainCard = () => {
                       <div className="flex flex-col md:flex-row justify-between gap-3">
                         <div className="flex-1">
                           <h3 className="text-xl font-semibold text-gray-900 truncate">
-                            {property.location.subLocality},{" "}
-                            {property.location.locality}
+                            {property._doc.location.subLocality},{" "}
+                            {property._doc.location.locality}
                           </h3>
                           <p className="text-sm text-gray-500 line-clamp-2 mt-1">
-                            {getFullAddress(property.location)}
+                            {getFullAddress(property._doc.location)}
                           </p>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
@@ -371,7 +373,7 @@ const MainCard = () => {
                             <>
                               <div className="flex">{renderStars(averageRating)}</div>
                               <span className="text-sm font-medium text-gray-700">
-                                {averageRating} ({property.reviews.length})
+                                {averageRating} ({property._doc.reviews.length})
                               </span>
                             </>
                           ) : (
@@ -384,40 +386,44 @@ const MainCard = () => {
 
                       <div className="flex gap-3 mt-2">
                         <span className="text-sm text-teal-600 font-medium bg-teal-50 px-2 py-1 rounded-full capitalize">
-                          {property.category || "Unknown"}
+                          {property._doc.category || "Unknown"}
                         </span>
                         <span className="text-sm text-purple-600 font-medium bg-purple-50 px-2 py-1 rounded-full capitalize">
-                          {property.propertyType || "Unknown"}
+                          {property._doc.propertyType || "Unknown"}
                         </span>
                       </div>
 
                       <p className="text-sm text-gray-600 mt-3 line-clamp-2">
-                        {property.description ||
+                        {property._doc.description ||
                           "No description available for this property."}
                       </p>
 
                       <div className="mt-4 grid grid-cols-2 gap-4">
                         <div>
                           <p className="text-lg font-semibold text-gray-900">
-                            {property?.pricing?.price?.amount
-                              ? `₹${property.pricing.price.amount.toLocaleString(
+                          {property._doc?.pricing?.price?.amount
+                              ? `₹${property._doc.pricing.price.amount.toLocaleString(
                                   "en-IN"
                                 )}`
-                              : property?.pricing?.expectedPrice
-                              ? `₹${property.pricing.expectedPrice.toLocaleString(
+                              : property._doc?.pricing?.expectedPrice
+                              ? `₹${property._doc.pricing.expectedPrice.toLocaleString(
                                   "en-IN"
                                 )}`
-                              : property?.pricing?.monthlyRent
-                              ? `₹${property.pricing.monthlyRent.toLocaleString(
+                              : property._doc?.pricing?.monthlyRent
+                              ? `₹${property._doc.pricing.monthlyRent.toLocaleString(
                                   "en-IN"
                                 )}/mo`
+                                : property._doc?.pricing?.finalPrice
+                                ? `₹${property._doc.pricing.finalPrice.toLocaleString(
+                                    "en-IN"
+                                  )}`
                               : "Price N/A"}
                           </p>
                           <p className="text-xs text-gray-500">Price</p>
                         </div>
                         <div>
                           <p className="text-lg font-semibold text-gray-900">
-                            {property.area} Sqft
+                            {property._doc.area} Sqft
                           </p>
                           <p className="text-xs text-gray-500">Carpet Area</p>
                         </div>
@@ -426,7 +432,7 @@ const MainCard = () => {
 
                     <div className="mt-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                       <p className="text-sm text-green-600 font-medium bg-green-50 px-2 py-1 rounded-full capitalize">
-                        {property.propertyStatus}
+                        {property._doc.propertyStatus}
                       </p>
                       <div className="flex gap-2">
                         <Link href={`/show-property/${property._id}`}>

@@ -23,7 +23,21 @@ const getFilteredProperty = async (req, res) => {
     // if (furnished !== undefined) filter.furnished = furnished;
     console.log("Filter:", filter);
     const propertyData = await Property.find(filter);
-    console.log("Property Data:", propertyData);
+    // console.log("Property Data:", propertyData);
+
+    const cloudfrontBaseUrl = process.env.CLOUDFRONT_BASE_URL;
+    const modifiedProperties = propertyData.map((property) => {
+      const modifiedImageUrl = property.images.map(img => {
+        const fileNameWithPath = img.url.split("amazonaws.com/")[1] || img.url;
+        return `${cloudfrontBaseUrl}${fileNameWithPath}`;
+      })
+      return {
+        ...property,
+        images: modifiedImageUrl,
+      }
+    })
+
+    console.log("Modified Properties:", modifiedProperties);
 
     // const filteredByPrice = propertyData.filter((property) => {
     //   const { price } = getPropertyPrice(property);
@@ -40,7 +54,7 @@ const getFilteredProperty = async (req, res) => {
     //     getPropertyAreaFilter(property);
     //   return computedMin >= minArea && computedMax <= maxArea;
     // });
-    res.status(200).json({ success: true, data: propertyData, lenght: propertyData.length });
+    res.status(200).json({ success: true, data: modifiedProperties, lenght: modifiedProperties.length });
   } catch (error) {
     console.error("Error fetching properties:", error);
     res.status(500).json({ success: false, message: "Server Error" });
