@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Search } from "./searchproperties";
 
 export const LandingPage = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -50,6 +51,7 @@ export const LandingPage = () => {
             Explore Property
           </button>
         </div>
+        <Search/>
       </div>
     </section>
   );
