@@ -9,8 +9,8 @@ const getFilteredProperty = async (req, res) => {
       // bedrooms,
       // role,
       // furnished,
-      // minBudget,
-      // maxBudget,
+      minBudget,
+      maxBudget,
       // minArea,
       // maxArea,
     } = req.query;
@@ -21,9 +21,7 @@ const getFilteredProperty = async (req, res) => {
     // if (bedrooms) filter.bedrooms = bedrooms;
     // if (role) filter.role = role;
     // if (furnished !== undefined) filter.furnished = furnished;
-    console.log("Filter:", filter);
     const propertyData = await Property.find(filter);
-    // console.log("Property Data:", propertyData);
 
     const cloudfrontBaseUrl = process.env.CLOUDFRONT_BASE_URL;
     const modifiedProperties = propertyData.map((property) => {
@@ -37,24 +35,23 @@ const getFilteredProperty = async (req, res) => {
       }
     })
 
-    console.log("Modified Properties:", modifiedProperties);
-
-    // const filteredByPrice = propertyData.filter((property) => {
-    //   const { price } = getPropertyPrice(property);
-    //   const numericPrice = parseFloat(price);
-    //   return (
-    //     !isNaN(numericPrice) &&
-    //     numericPrice >= minBudget &&
-    //     numericPrice <= maxBudget
-    //   );
-    // });
-
+    const filteredByPrice = modifiedProperties.filter((property) => {
+      const { price } = getPropertyPrice(property._doc);
+      const numericPrice = parseFloat(price);
+      return (
+        !isNaN(numericPrice) &&
+        numericPrice >= minBudgetValue &&
+        numericPrice <= maxBudgetValue
+      );
+    });
+    
     // const filteredData = filteredByPrice.filter((property) => {
     //   const { minArea: computedMin, maxArea: computedMax } =
     //     getPropertyAreaFilter(property);
     //   return computedMin >= minArea && computedMax <= maxArea;
     // });
-    res.status(200).json({ success: true, data: modifiedProperties, lenght: modifiedProperties.length });
+    // console.log("Filtered Data:", filteredData);
+    res.status(200).json({ success: true, data: filteredByPrice, lenght: filteredByPrice.length });
   } catch (error) {
     console.error("Error fetching properties:", error);
     res.status(500).json({ success: false, message: "Server Error" });
