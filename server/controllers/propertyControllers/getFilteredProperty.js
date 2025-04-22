@@ -15,6 +15,9 @@ const getFilteredProperty = async (req, res) => {
       // maxArea,
     } = req.query;
 
+  const minBudgetValue = parseFloat(req.query.minPrice);
+  const maxBudgetValue = parseFloat(req.query.maxPrice); 
+
     let filter = {};
     if (propertyType) filter.propertyType = propertyType;
     if (category) filter.category = category;
