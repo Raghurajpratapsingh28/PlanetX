@@ -16,7 +16,7 @@ This API provides endpoints for OTP-based user authentication.
 
 ---
 
-## **Endpoints**
+## **Endpoints**    
 
 ---
 
